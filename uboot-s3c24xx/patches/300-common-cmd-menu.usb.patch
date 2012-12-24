@@ -1,0 +1,76 @@
+--- u-boot-2010.03//common/Makefile	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//common/Makefile	2012-09-05 15:06:15.698689762 +0800
+@@ -115,6 +115,7 @@
+ COBJS-$(CONFIG_CMD_MG_DISK) += cmd_mgdisk.o
+ COBJS-$(CONFIG_MII) += miiphyutil.o
+ COBJS-$(CONFIG_CMD_MII) += miiphyutil.o
++COBJS-$(CONFIG_DOWNLOAD_MENU) += cmd_menu.o
+ COBJS-$(CONFIG_CMD_MII) += cmd_mii.o
+ COBJS-$(CONFIG_CMD_MISC) += cmd_misc.o
+ COBJS-$(CONFIG_CMD_MMC) += cmd_mmc.o
+@@ -166,6 +167,9 @@
+ COBJS-$(CONFIG_UPDATE_TFTP) += update.o
+ COBJS-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
+ 
++# Apollo +
++COBJS-$(CONFIG_USB_DEVICE) += cmd_usbslave.o
++# Apollo -
+ 
+ COBJS	:= $(sort $(COBJS-y))
+ SRCS	:= $(AOBJS:.o=.S) $(COBJS:.o=.c)
+--- u-boot-2010.03//common/main.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//common/main.c	2012-09-05 15:06:15.698689762 +0800
+@@ -413,6 +413,10 @@
+ 		disable_ctrlc(prev);	/* restore Control C checking */
+ # endif
+ 	}
++	else
++# ifdef CONFIG_CMD_MENU
++	run_command("menu", 0);
++# endif
+ 
+ # ifdef CONFIG_MENUKEY
+ 	if (menukey == CONFIG_MENUKEY) {
+--- u-boot-2010.03//common/serial.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//common/serial.c	2012-09-05 15:06:15.698689762 +0800
+@@ -59,7 +59,7 @@
+ #else
+ 		return &serial0_device;
+ #endif
+-#elif defined(CONFIG_S3C2410)
++#elif defined(CONFIG_S3C2410) || defined(CONFIG_S3C2440)
+ #if defined(CONFIG_SERIAL1)
+ 	return &s3c24xx_serial0_device;
+ #elif defined(CONFIG_SERIAL2)
+@@ -148,7 +148,7 @@
+ #if defined (CONFIG_STUART)
+ 	serial_register(&serial_stuart_device);
+ #endif
+-#if defined(CONFIG_S3C2410)
++#if defined(CONFIG_S3C2410) || defined(CONFIG_S3C2440)
+ 	serial_register(&s3c24xx_serial0_device);
+ 	serial_register(&s3c24xx_serial1_device);
+ 	serial_register(&s3c24xx_serial2_device);
+--- u-boot-2010.03//common/env_common.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//common/env_common.c	2012-09-05 15:06:15.698689762 +0800
+@@ -133,6 +133,9 @@
+ #if defined(CONFIG_PCI_BOOTDELAY) && (CONFIG_PCI_BOOTDELAY > 0)
+ 	"pcidelay="	MK_STR(CONFIG_PCI_BOOTDELAY)	"\0"
+ #endif
++#ifdef  MTDPARTS_DEFAULT
++	"mtdparts="	MTDPARTS_DEFAULT		"\0"
++#endif
+ #ifdef  CONFIG_EXTRA_ENV_SETTINGS
+ 	CONFIG_EXTRA_ENV_SETTINGS
+ #endif
+--- u-boot-2010.03//common/usb.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//common/usb.c	2012-09-05 15:06:15.698689762 +0800
+@@ -49,6 +49,8 @@
+ #include <asm/processor.h>
+ #include <linux/ctype.h>
+ #include <asm/byteorder.h>
++#include <config.h>
++
+ 
+ #include <usb.h>
+ #ifdef CONFIG_4xx

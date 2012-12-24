@@ -1,0 +1,10 @@
+--- u-boot-2011.06/include/common.h	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman/include/common.h	2012-12-17 15:15:03.000000000 +0800
+@@ -513,6 +513,7 @@
+ #if defined(CONFIG_S3C24X0) || \
+     defined(CONFIG_LH7A40X) || \
+     defined(CONFIG_S3C6400) || \
++    defined(CONFIG_S3C6410) || \
+     defined(CONFIG_EP93XX)
+ ulong	get_FCLK (void);
+ ulong	get_HCLK (void);

@@ -1,0 +1,29 @@
+--- u-boot-2010.03/board/samsung/smdk2440/smdk2440.c	2012-12-12 23:07:30.067792243 +0800
++++ u-boot-2010.03-lintel/board/samsung/smdk2440/smdk2440.c	2011-09-06 03:29:26.000000000 +0800
+@@ -301,25 +301,13 @@
+ #ifdef CONFIG_CMD_NET
+ int board_eth_init(bd_t *bis)
+ {
+-	unsigned int cs8900_base = simple_strtoul (getenv ("cs8900_base"), NULL, 16);
+-	unsigned int dm9000_base = simple_strtoul (getenv ("dm9000_base"), NULL, 16);
+ 	int rc = 0;
+ #ifdef CONFIG_CS8900
++	rc = cs8900_initialize(0, CONFIG_CS8900_BASE);
+-	if(cs8900_base!=NULL)
+-	{
+-//	printf("CS8900_BASE=%x\n",cs8900_base);
+-	rc = cs8900_initialize(0, cs8900_base);
+-	}
+ #endif
+-
+ #ifdef CONFIG_DRIVER_DM9000
+-	if(dm9000_base!=NULL)
+-	{
+-//	printf("DM9000_BASE=%x\n",dm9000_base);
+ 	rc = dm9000_initialize(bis);
+-	}
+ #endif
+-//	printf("initialized.\n");
+ 	return rc;
+ }
+ #endif

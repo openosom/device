@@ -1,0 +1,11 @@
+diff -Nur u-boot-2011.06/drivers/usb/host/ohci-hcd.c u-boot-2011.06-tekkaman/drivers/usb/host/ohci-hcd.c
+--- u-boot-2011.06/drivers/usb/host/ohci-hcd.c	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman/drivers/usb/host/ohci-hcd.c	2012-12-17 15:15:03.000000000 +0800
+@@ -67,6 +67,7 @@
+ #if defined(CONFIG_ARM920T) || \
+     defined(CONFIG_S3C24X0) || \
+     defined(CONFIG_S3C6400) || \
++    defined(CONFIG_S3C6410) || \
+     defined(CONFIG_440EP) || \
+     defined(CONFIG_PCI_OHCI) || \
+     defined(CONFIG_MPC5200) || \

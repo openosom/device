@@ -1,0 +1,26 @@
+--- u-boot-2010.03//drivers/video/Makefile	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//drivers/video/Makefile	2012-09-05 15:06:15.706689762 +0800
+@@ -39,6 +39,7 @@
+ COBJS-$(CONFIG_VIDEO_SMI_LYNXEM) += smiLynxEM.o
+ COBJS-$(CONFIG_VIDEO_VCXK) += bus_vcxk.o
+ COBJS-y += videomodes.o
++COBJS-y += s3c2410_fb.o
+ 
+ COBJS	:= $(COBJS-y)
+ SRCS	:= $(COBJS:.o=.c)
+--- u-boot-2010.03//drivers/video/cfb_console.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//drivers/video/cfb_console.c	2012-09-05 15:06:15.706689762 +0800
+@@ -283,8 +283,11 @@
+ #define VIDEO_LOGO_LUT_OFFSET	LINUX_LOGO_LUT_OFFSET
+ #define VIDEO_LOGO_COLORS	LINUX_LOGO_COLORS
+ #endif	/* CONFIG_VIDEO_BMP_LOGO */
+-#define VIDEO_INFO_X		(VIDEO_LOGO_WIDTH)
+-#define VIDEO_INFO_Y		(VIDEO_FONT_HEIGHT/2)
++#define VIDEO_INFO_X		(0)
++#define VIDEO_INFO_Y		(VIDEO_LOGO_HEIGHT)
++//#define VIDEO_INFO_X		(VIDEO_LOGO_WIDTH)
++//#define VIDEO_INFO_Y		(VIDEO_FONT_HEIGHT/2)
++
+ #else	/* CONFIG_VIDEO_LOGO */
+ #define VIDEO_LOGO_WIDTH	0
+ #define VIDEO_LOGO_HEIGHT	0

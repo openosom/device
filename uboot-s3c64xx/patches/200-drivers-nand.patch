@@ -1,0 +1,81 @@
+diff -Nur u-boot-2011.06/drivers/mtd/nand/nand_ecc.c u-boot-2011.06-tekkaman/drivers/mtd/nand/nand_ecc.c
+--- u-boot-2011.06/drivers/mtd/nand/nand_ecc.c	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman/drivers/mtd/nand/nand_ecc.c	2012-12-17 15:15:02.000000000 +0800
+@@ -50,7 +50,7 @@
+  * only nand_correct_data() is needed
+  */
+ 
+-#ifndef CONFIG_NAND_SPL
++#if !(defined(CONFIG_NAND_SPL) || defined(CONFIG_BOOT_AUTODETECT))
+ /*
+  * Pre-calculated 256-way 1 byte column parity
+  */
+@@ -132,7 +132,7 @@
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_NAND_SPL */
++#endif /* CONFIG_NAND_SPL||CONFIG_MMC_SPL */
+ 
+ static inline int countbits(uint32_t byte)
+ {
+diff -Nur u-boot-2011.06/drivers/mtd/nand/ndfc.c u-boot-2011.06-tekkaman/drivers/mtd/nand/ndfc.c
+--- u-boot-2011.06/drivers/mtd/nand/ndfc.c	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman/drivers/mtd/nand/ndfc.c	2012-12-17 15:15:02.000000000 +0800
+@@ -113,7 +113,7 @@
+ 		*p++ = in_be32((u32 *)(base + NDFC_DATA));
+ }
+ 
+-#ifndef CONFIG_NAND_SPL
++#if !(defined(CONFIG_NAND_SPL) || defined(CONFIG_BOOT_AUTODETECT)
+ /*
+  * Don't use these speedup functions in NAND boot image, since the image
+  * has to fit into 4kByte.
+@@ -140,7 +140,7 @@
+ 
+ 	return 0;
+ }
+-#endif /* #ifndef CONFIG_NAND_SPL */
++#endif /* #if !(defined(CONFIG_NAND_SPL) || defined(CONFIG_BOOT_AUTODETECT) */
+ 
+ #ifndef CONFIG_SYS_NAND_BCR
+ #define CONFIG_SYS_NAND_BCR 0x80002222
+@@ -198,7 +198,7 @@
+ 	nand->ecc.bytes = 3;
+ 	nand->select_chip = ndfc_select_chip;
+ 
+-#ifndef CONFIG_NAND_SPL
++#if !(defined(CONFIG_NAND_SPL) || defined(CONFIG_BOOT_AUTODETECT)
+ 	nand->write_buf  = ndfc_write_buf;
+ 	nand->verify_buf = ndfc_verify_buf;
+ 
+diff -Nur u-boot-2011.06/drivers/mtd/nand/s3c64xx.c u-boot-2011.06-tekkaman/drivers/mtd/nand/s3c64xx.c
+--- u-boot-2011.06/drivers/mtd/nand/s3c64xx.c	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman/drivers/mtd/nand/s3c64xx.c	2012-12-17 15:15:02.000000000 +0800
+@@ -36,7 +36,7 @@
+ #define MAX_CHIPS	2
+ static int nand_cs[MAX_CHIPS] = {0, 1};
+ 
+-#ifdef CONFIG_NAND_SPL
++#if (defined(CONFIG_NAND_SPL) || defined(CONFIG_BOOT_AUTODETECT))
+ #define printf(arg...) do {} while (0)
+ #endif
+ 
+@@ -60,7 +60,7 @@
+ }
+ #endif /* S3C_NAND_DEBUG */
+ 
+-#ifdef CONFIG_NAND_SPL
++#if (defined(CONFIG_NAND_SPL) || defined(CONFIG_BOOT_AUTODETECT))
+ static u_char nand_read_byte(struct mtd_info *mtd)
+ {
+ 	struct nand_chip *this = mtd->priv;
+@@ -291,7 +291,7 @@
+ 	nand->dev_ready		= s3c_nand_device_ready;
+ 	nand->select_chip	= s3c_nand_select_chip;
+ 	nand->options		= 0;
+-#ifdef CONFIG_NAND_SPL
++#if (defined(CONFIG_NAND_SPL) || defined(CONFIG_BOOT_AUTODETECT))
+ 	nand->read_byte		= nand_read_byte;
+ 	nand->write_buf		= nand_write_buf;
+ 	nand->read_buf		= nand_read_buf;

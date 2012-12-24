@@ -1,0 +1,23 @@
+--- u-boot-2010.03///Makefile	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-fs2410///Makefile	2012-12-16 11:30:09.266889653 +0800
+@@ -163,6 +163,10 @@
+ CROSS_COMPILE ?=
+ endif
+ 
++ifeq (arm,$(ARCH))
++CROSS_COMPILE ?= arm-openwrt-linux-
++endif
++
+ # load other configuration
+ include $(TOPDIR)/config.mk
+ 
+@@ -3045,6 +3049,9 @@
+ smdk2410_config	:	unconfig
+ 	@$(MKCONFIG) $(@:_config=) arm arm920t smdk2410 samsung s3c24x0
+ 
++fs2410_config :	unconfig
++	@$(MKCONFIG) $(@:_config=) arm arm920t fs2410 samsung s3c24x0
++
+ spear300_config \
+ spear310_config \
+ spear320_config :	unconfig

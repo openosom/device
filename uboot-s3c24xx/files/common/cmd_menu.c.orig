@@ -1,0 +1,700 @@
+/*
+ *      U-boot DownLoad menu 
+ *      by Lintel(lintel.huang@gmail.com)
+ *
+ *      2011.09.02
+ */
+#include <common.h>
+#include <command.h>
+#include <config.h>
+//#include <asm/mach-types.h>
+#ifdef CONFIG_USB_DEVICE
+extern void udc_disconnect(void);
+extern void usb_init_slave(void);
+#endif
+
+extern char console_buffer[];
+extern int readline (const char *const prompt);
+extern void download_nkbin_to_flash(void);
+extern int boot_zImage(ulong from, size_t size);
+
+static char awaitkey(unsigned long delay, int* error_p)
+{
+    int i;
+    if (delay == -1)
+    {
+        while (1)
+        {
+            if (tstc()) /* we got a key press */
+                return getc();
+        }
+    }
+    else
+    {
+        for (i = 0; i < delay; i++)
+        {
+            if (tstc()) /* we got a key press */
+                return getc();
+            udelay (10*1000);
+        }
+    }
+    if (error_p)
+        *error_p = -1;
+
+    return 0;
+}
+
+
+int download(int modes)
+{
+      char cmd_buf[256];
+    switch(modes)
+    {
+      case 0:
+	      printf("\nLoad file from USBslave ... \n");
+	      setenv("filesize","");
+              strcpy(cmd_buf, "usbslave 1 0x32000000");
+	      run_command(cmd_buf, 0);
+	      if (simple_strtoul(getenv ("filesize"), NULL, 16)<16)
+	      return -1;
+	      break;
+      case 1:
+	     if (getenv("ethact")==NULL)
+	     {
+	       printf("\nSorry,you have no a eth ... \n");
+	       return -1;
+	       break;
+	     }
+	      printf("\nLoad file  from network use tftp ... \n");
+	      setenv("filesize","");
+	      strcpy(cmd_buf, "tftp  0x32000000  ");
+	      printf("Please filename from tftp-server: ");
+	      memset(console_buffer,NULL,CONFIG_SYS_CBSIZE);
+	      readline(NULL);
+	      strcat(cmd_buf, console_buffer);
+	      run_command(cmd_buf, 0);
+	      if (simple_strtoul(getenv ("filesize"), NULL, 16)<16)
+	      return -1;
+	      break;
+      case 2:
+	      printf("\nLoad file from serial with xmodem ... \n");
+	      setenv("filesize","");
+	      strcpy(cmd_buf, "loadx  0x32000000");
+	      run_command(cmd_buf, 0);
+	      if (simple_strtoul(getenv ("filesize"), NULL, 16)<16)
+	      return -1;
+	      break;
+    }
+    return simple_strtoul(getenv ("filesize"), NULL, 16);
+}
+
+void main_menu_usage(int mode)
+{
+    printf("\r\n------------- U-BOOT MEMU ----------------\r\n");
+    printf("          Download Mode:%s   \r\n",mode==0?"USB":(mode==1?"tftp":"serial"));
+    printf("[0] U-boot.bin              --> Nand Flash\r\n");
+    printf("[1] Linux kernel[uImage]    --> Nand Flash\r\n");
+    printf("[2] Linux kernel[zImage]    --> Nand Flash\r\n");
+    printf("[3] Squashfs/ramdisk rootfs --> Nand Flash\r\n");
+    printf("[4] Jffs2 rootfs            --> Nand Flash\r\n");
+    printf("[5] Yaffs2 rootfs           --> Nand Flash\r\n");
+    printf("[6] Linux kernel            --> Ram & Run \r\n");
+    printf("[7] Test applications       --> Ram & Run \r\n");
+    printf("[8] Set boot command line  --> linux     \r\n");
+    printf("[f] Format nandflash for linux            \r\n");
+    printf("[v] View mtd partition                    \r\n");
+    printf("[c] Change download Mode                  \r\n");    
+    printf("[s] Setting  parameter     -->            \r\n");
+    printf("[e] Reset settings to default             \r\n"); 
+    printf("[b] Boot linux                            \r\n");
+    printf("[m] Multi boot             -->            \r\n");
+    printf("[r] Restart system                        \r\n");
+    printf("[q] Back to shell                         \r\n");
+    printf("Boot From:%s FLASH\n",(bBootFrmNORFlash == 1?"NOR":"NAND"));
+    printf("Choose a job:");
+}
+
+void menu_shell(void)
+{
+    char c;
+    char cmd_buf[256];
+    static int mode=0;
+    while (1)
+    {
+      /*
+      check the download modes 
+      0 for usb download
+      1 for tftp download
+      3 for serial download
+      */
+	main_menu_usage(mode);
+	
+        c = awaitkey(-1, NULL);
+        printf("%c\n", c);
+        switch (c)
+        {
+        case 'c':
+        {
+	    mode++;
+	    if(mode>=3)
+	     mode=0;
+            break;
+	}
+        case 's':
+        {
+	    system_setting_shell();
+            break;
+	}
+        case 'b':
+        {
+//            strcpy(cmd_buf, "usbslave 1 0x32000000; nand erase boot; nand write 0x32000000 boot $(filesize)");
+            strcpy(cmd_buf, "bootd");
+            run_command(cmd_buf, 0);
+            break;
+        }
+        case 'f':
+        {
+	    if (bBootFrmNORFlash == 1)
+            strcpy(cmd_buf, "mtdpart default; nand erase;saveenv");
+	    else
+	    {
+	    printf("\nBoot From NAND !\nNot erase bootloader.\n ");
+            strcpy(cmd_buf, "mtdpart default; nand erase 0x00080000; saveenv");
+	    }
+            run_command(cmd_buf, 0);
+            break;
+        }
+	case 'm':
+	  multiboot_shell();
+	  break;
+        case 'r':
+        {
+            strcpy(cmd_buf, "reset");
+            run_command(cmd_buf, 0);
+            break;
+        }
+        case 'v':
+        {
+            strcpy(cmd_buf, "mtdparts");
+            run_command(cmd_buf, 0);
+	    printf("\nPress any key...\n");
+	    awaitkey(-1, NULL);
+            break;
+        }
+	case 'e':
+	{
+	    printf("Erase u-boot-env...");
+            run_command("nand erase uboot-env;reset",0);
+            break;
+	}
+        case  27:
+        case 'q':
+        {
+            return;
+            break;
+        }
+        case '0':
+        {
+	  if(!bBootFrmNORFlash)
+	    printf("\nWarning:This operation will be brick your board!!!continue?(y/n)");
+	    c = awaitkey(-1, NULL);
+	    if (c=='n'||c=='N')
+	    break;
+	    printf("\nDownload U-boot Bootloader ... \n");
+	    if(download(mode)<0)
+	    break;
+//            strcpy(cmd_buf, "usbslave 1 0x32000000; nand erase boot; nand write 0x32000000 boot $(filesize)");
+            strcpy(cmd_buf, "nand erase uboot; nand write 0x32000000 uboot");
+	    {
+	    if (simple_strtoul(getenv ("filesize"), NULL, 16)>16)
+            run_command(cmd_buf, 0);
+	    }
+            break;
+        }
+        case '1':
+        {
+	    printf("\nDownLoad uImage Kernel ... \n");
+	    download(mode);
+            strcpy(cmd_buf, "nand erase kernel; nand write 0x32000000 kernel");
+	    if (simple_strtoul(getenv ("filesize"), NULL, 16)>0x10)
+	    {
+	    run_command(cmd_buf, 0);
+	    setenv("bootcmd"," nboot 0x30008000 kernel;bootm");
+	    run_command("saveenv", 0);
+	    }
+            break;
+        }
+	case '2': 
+	{
+	    printf("\nDownLoad zImage Kernel ... \n");
+	    download(mode);
+            strcpy(cmd_buf, "nand erase kernel; nand write 0x32000000 kernel");
+	    if (simple_strtoul(getenv ("filesize"), NULL, 16)>0x10)
+	    {
+	    run_command(cmd_buf, 0);
+	    setenv("bootcmd","nand read 0x30008000 kernel;bootz");
+	    run_command("saveenv", 0);
+	    }
+	    break;
+	}
+        case '3':
+        {
+	    printf("\nDownLoad squashfs rootfs ... \n");
+	    download(mode);
+            strcpy(cmd_buf, "nand erase rootfs; nand write 0x32000000 rootfs 0x2000000 ");
+	    if (simple_strtoul(getenv ("filesize"), NULL, 16)>0x10)
+	    {
+	    run_command(cmd_buf, 0);
+	    run_command("setenv bootargs root=/dev/mtdblock3  console=ttySAC0 rootfstype=squashfs,ext2;saveenv", 0);
+	    }
+	    break;
+        }
+	case '4': //jffs2
+	{
+		printf("\nDownLoad jffs rootfs ... \n");
+		download(mode);
+		strcpy(cmd_buf, "nand erase rootfs; nand write 0x32000000 rootfs $filesize");
+		run_command(cmd_buf, 0);
+		run_command("setenv bootargs noinitrd root=/dev/mtdblock3  console=ttySAC0 rootfstype=jffs2;saveenv", 0);
+		break;
+	}
+	case '5': //yaffs
+	{
+		printf("\nDownLoad Yaffs2 rootfs ... \n");
+		download(mode);
+		strcpy(cmd_buf, "nand erase rootfs; nand write.yaffs 0x32000000 rootfs $filesize");
+		run_command(cmd_buf, 0);
+		run_command("setenv bootargs noinitrd root=/dev/mtdblock3  console=ttySAC0 rootfstype=yaffs2;saveenv", 0);
+		break;
+	}
+        case '6':
+	{
+	  if (mode==0)
+	  {
+            strcpy(cmd_buf, "usbslave 1 0x30008000");
+            run_command(cmd_buf, 0);
+	  }
+	  else if (mode==1)
+	  {
+	     if (getenv("ethact")==NULL)
+	     {
+	       printf("\nSorry,you have no a eth ... \n");
+	       return -1;
+	       break;
+	     }
+	      printf("\nLoad file  from network use tftp ... \n");
+	      setenv("filesize","");
+	      strcpy(cmd_buf, "tftp  0x30008000  ");
+	      printf("Please filename from tftp-server: ");
+	      memset(console_buffer,NULL,CONFIG_SYS_CBSIZE);
+	      readline(NULL);
+	      strcat(cmd_buf, console_buffer);
+	      run_command(cmd_buf, 0);
+	  }
+	  else
+	  {
+            strcpy(cmd_buf, "loadx 0x30008000");
+            run_command(cmd_buf, 0);	    
+	  }
+          strcpy(cmd_buf, "bootm 0x30008000;bootz");
+	  if (simple_strtoul(getenv ("filesize"), NULL, 16)>16)
+          run_command(cmd_buf, 0);
+            break;	  
+         }
+	case '7': 
+	{
+		printf("Download application to 0x32000000 ...\n");
+		printf("Clean Memory at 0x32000000 Len 0x400000...");
+		run_command("mw.b 0x32000000 0xFF 0x400000",0);
+		printf("OK\n");
+		if (download(mode)>=0)
+		run_command("go 0x32000000",0);
+		break;
+	}
+        case '8':
+        {
+	    printf("Current command line:%s\n",getenv("bootargs"));
+	    printf("New command line:");
+	    memset(console_buffer,NULL,CONFIG_SYS_CBSIZE);
+	    readline(NULL);
+//	    strcat(cmd_buf, console_buffer);
+	    c = awaitkey(-1, NULL);
+	    printf("Save new command line ?(y/n)");	    
+	    if(c=='y'||c=='Y')
+	    {setenv("bootargs",console_buffer); run_command("saveenv",0);break;}
+	}
+        }
+    }
+}
+
+
+void multiboot_menu_usage(void)
+{
+    printf("\r\n------------- U-BOOT MEMU ----------------\r\n");   
+    printf("\r              Multi boot                  \r\n");
+    printf("[1] Boot Linux from USB Disk[zImage]        \r\n");
+    printf("[2] Boot Linux from MMC/SD Card [zImage]    \r\n");
+    printf("[3] Set USB Boot as bootcmd                 \r\n");
+    printf("[4] Set SD/MMC Boot as bootcmd              \r\n");
+    printf("[q] Back to main menu                       \r\n");
+    printf("Boot From:%s FLASH\n",(bBootFrmNORFlash == 1?"NOR":"NAND"));
+    printf("Choose a job:");
+}
+
+void multiboot_shell(void)
+{
+    char c;
+    char cmd_buf[256];
+    while (1)
+    {
+      /*
+      check the download modes 
+      0 for usb download
+      1 for tftp download
+      3 for serial download
+      */
+	multiboot_menu_usage();
+	
+        c = awaitkey(-1, NULL);
+        printf("%c\n", c);
+        switch (c)
+        {
+        case '1':
+        {
+	    printf("Load kernel form USB...\n");
+	    run_command("usb start", 0);
+	    run_command("fatls usb 0", 0);
+            strcpy(cmd_buf, "fatload usb 0 0x30008000 ");
+	    printf("filename to load from USB: ");
+	    memset(console_buffer,NULL,CONFIG_SYS_CBSIZE);
+	    readline(NULL);
+	    strcat(cmd_buf, console_buffer);
+	    run_command(cmd_buf, 0);
+	    if (simple_strtoul(getenv ("filesize"), NULL, 16)>16)
+            run_command("bootz", 0);	
+            break;
+	}
+        case '2':
+        {
+	    printf("Load kernel form SD/MMC...\n");
+	    run_command("mmc init", 0);
+	    run_command("fatls mmc 0", 0);
+            strcpy(cmd_buf, "fatload mmc 0 0x30008000 ");
+	    printf("filename to load from MMC/SD: ");
+	    memset(console_buffer,NULL,CONFIG_SYS_CBSIZE);
+	    readline(NULL);
+	    strcat(cmd_buf, console_buffer);
+	    run_command(cmd_buf, 0);
+	    if (simple_strtoul(getenv ("filesize"), NULL, 16)>16)
+	    run_command("bootz", 0);
+            break;
+	}
+        case '3':
+        {
+	    setenv("bootcmd","mmc init;fatload mmc 0 0x30008000 zImage;bootz");
+	    run_command("saveenv", 0);
+            break;
+	}
+        case '4':
+        {
+	    setenv("bootcmd","usb start;fatload mmc 0 0x30008000 zImage;bootz");
+	    run_command("saveenv", 0);
+            break;
+	}
+	case  27:
+        case 'q':
+        {
+            return;
+            
+	}
+	}
+    }
+}
+
+void system_setting_menu_usage(void)
+{
+    printf("\r\n------------- U-BOOT MEMU ----------------\r\n");   
+    printf("\r             System Settings              \r\n");
+    printf("[1] Print U-boot parameter                  \r\n");
+    printf("[2] Edit a U-boot parameter                 \r\n");
+    printf("[3] Select board types                      \r\n");
+    printf("[4] Nand scrub - really clean NAND erasing bad blocks (UNSAFE) \r\n");
+    printf("[r] Reset settings to default               \r\n"); 
+    printf("[s] Save settings to flash                  \r\n");
+    printf("[q] Back to main menu                       \r\n");
+    printf("Boot From:%s FLASH\n",(bBootFrmNORFlash == 1?"NOR":"NAND"));
+    printf("Choose a job:");
+}
+
+void system_setting_shell(void)
+{
+    char c;
+    char cmd_buf[256];
+    while (1)
+    {
+      /*
+      check the download modes 
+      0 for usb download
+      1 for tftp download
+      3 for serial download
+      */
+	system_setting_menu_usage();
+	
+        c = awaitkey(-1, NULL);
+        printf("%c\n", c);
+        switch (c)
+        {
+        case '1':
+        {
+	  strcpy(cmd_buf, "printenv ");
+	  printf("Name(enter to view all paramters): ");
+	  readline(NULL);
+	  strcat(cmd_buf, console_buffer);
+	  run_command(cmd_buf, 0);
+	   printf("Press any key...");
+	    awaitkey(-1, NULL);
+            break;
+	}
+	case '2':
+	{
+	sprintf(cmd_buf, "setenv ");
+	printf("Name: ");
+        readline(NULL);
+        strcat(cmd_buf, console_buffer);
+	printf("Value: ");
+	readline(NULL);
+	strcat(cmd_buf, " ");
+	strcat(cmd_buf, console_buffer);
+	run_command(cmd_buf, 0);
+        break;
+        }
+	case '3':
+	{
+	  matchtype_setting_shell();
+	  break;
+	}
+	case '4':
+	{
+	strcpy(cmd_buf, "nand scrub ");
+	run_command(cmd_buf, 0);
+	break;
+	}
+        case 'r':
+        {
+	    printf("Erase u-boot-env...");
+            strcpy(cmd_buf, "reset");
+            run_command(cmd_buf, 0);
+            break;
+        }
+	case 's':
+	{
+	  run_command("saveenv", 0);
+	  break;
+	}
+	case  27:
+        case 'q':
+        {
+            return;
+            
+	}
+	}
+    }
+}
+
+void machtype_menu_usage(void)
+{
+    printf("\r\n------------- U-BOOT MEMU ----------------\r\n");   
+    printf("\r           select Board Types             \r\n");
+    printf("SMDK2410:                                   \r\n");
+    printf("[1] SMDK2410                                \r\n");
+    printf("[2] QT2410                                  \r\n");
+    printf("[3] FS2410                                  \r\n");
+    printf("[4] GEC2410 GEC2440 V1.0 (CS8900A)          \r\n");
+    printf("SMDK2440:                                   \r\n");
+    printf("[5] SMDK2440                                \r\n");
+    printf("[6] QQ2440                                  \r\n");
+    printf("[7] MINI2440 Micro2440                      \r\n");
+    printf("[8] GEC2440 V1.1 (DM9000AEP)                \r\n");
+    printf("[9] TQ2410                                  \r\n");
+    printf("[o] Other Boards                            \r\n");
+    printf("[s] Save settings to flash                  \r\n");
+    printf("[q] back to upset menu                       \r\n");
+    printf("Boot From:%s FLASH\n",(bBootFrmNORFlash == 1?"NOR":"NAND"));
+    printf("Choose a job:");
+}
+void matchtype_setting_shell(void)
+{
+    char c;
+    char cmd_buf[256];
+    
+    while (1)
+    {	
+	machtype_menu_usage();
+        c = awaitkey(-1, NULL);
+        printf("%c\n", c);
+        switch (c)
+        {
+        case '1':
+        {
+	      setenv("machid","193");
+            break;
+	}
+        case '2':
+        {
+	      setenv("machid","1008");
+            break;
+	}
+	case '3':
+        {
+ 	      setenv("machid","912");
+ 	      setenv ("cs8900_base","0x19000300");
+            break;
+	}
+	case '4':
+        {
+ 	      setenv("machid","2315");
+	      setenv ("cs8900_base","0x19000300");
+            break;
+	}
+	case '5':
+        {
+ 	      setenv("machid","1008");
+            break;
+	}
+	case '6':
+        {
+ 	      setenv("machid","1998");
+            break;
+	}
+	case '7':
+        {
+ 	      setenv("machid","1999");
+	      setenv ("dm9000_base","0x20000300");
+	      setenv ("dm9000_io","0x20000300");	      
+	      setenv ("dm9000_data","0x20000304");	      
+            break;
+	}
+	case '8':
+        {
+ 	      setenv("machid","2316");
+ 	      setenv ("dm9000_base","0x10000000");
+	      setenv ("dm9000_io","0x10000000");	      
+	      setenv ("dm9000_data","0x11000000");	
+            break;
+	}
+	case '9':
+        {
+ 	      setenv("machid","2682");
+	      setenv ("dm9000_base","0x20000300");
+	      setenv ("dm9000_io","0x20000300");	      
+	      setenv ("dm9000_data","0x20000304");
+            break;
+	}
+	case 'o':
+	{
+	    printf("Current MACH_TYPE_ID:%s\n",getenv("machid"));
+	    printf("New MACH_TYPE_ID:");
+	    memset(console_buffer,NULL,CONFIG_SYS_CBSIZE);
+	    readline(NULL);
+	    setenv("machid",console_buffer);
+            break;
+	}
+	case 's':
+	{
+	  run_command("saveenv", 0);
+	  break;
+	}
+	case 'q':
+	case  27:
+        {
+            return;
+            break;
+	}
+        }
+    }
+}
+
+
+void first_boot_set_machtype (void)
+{
+    unsigned int id_mach = simple_strtoul (getenv ("machid"), NULL, 16);
+    if(id_mach == NULL){
+        printf("\r\n---------------------- NO SETTING MACH_TYPE ----------------------\r\n");
+        printf("--- #NOTE : Please follow the steps to set MACH_TYPE           ---\r\n");
+        printf("--- Step 1: Hit [0 - 9] to select BOARD TYPE and set MACH_TYPE ---\r\n");
+        printf("--- Step 2: Hit [s] to save settings                           ---\r\n");
+        printf("--- Step 3: Hit [q] to quit and reset                          ---\r\n");
+        printf("------------------------------------------------------------------\r\n");
+
+        matchtype_setting_shell();
+        run_command("reset", 0);
+    }
+}
+
+int do_machtype (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+
+	switch (argc) {
+	case 2: //argc==2(like: "machtype 0"), means: first_boot
+		//printf("first boot\n");
+		first_boot_set_machtype();
+		break;
+	default://already setting machid, reset now
+		matchtype_setting_shell();
+		break;
+	}
+
+	return 0;
+}
+
+int do_menu (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+    first_boot_set_machtype();
+
+    menu_shell();
+    return 0;
+}
+
+U_BOOT_CMD(menu, 1, 0, do_menu,
+"U-BOOT DOWNLOAD MENU",
+"# press the following keys to use the corresponding function :\n"
+"    [0] U-boot.bin              --> Nand Flash\n"
+"    [1] Linux kernel[uImage]    --> Nand Flash\n"
+"    [2] Linux kernel[zImage]    --> Nand Flash\n"
+"    [3] Squashfs/ramdisk rootfs --> Nand Flash\n"
+"    [4] Jffs2 rootfs            --> Nand Flash\n"
+"    [5] Yaffs2 rootfs           --> Nand Flash\n"
+"    [6] Linux kernel            --> Ram & Run\n"
+"    [7] Test applications       --> Ram & Run\n"
+"    [8] Set boot command line  --> linux\n"
+"    [f] Format nandflash for linux\n"
+"    [v] View mtd partition\n"
+"    [c] Change download Mode\n"
+"    [s] Setting  parameter     -->\n"
+"    [e] Reset settings to default\n"
+"    [b] Boot linux\n"
+"    [m] Multi boot             -->\n"
+"    [r] Restart system\n"
+"    [q] Back to shell\n"
+"\nby lintel<lintel.huang@gmail.com>\n"
+);
+
+U_BOOT_CMD(machtype, 2, 0, do_machtype,
+"select Board Types and set machid",
+"# press the following keys to select the corresponding Board Types :\n"
+"    SMDK2410:\n"
+"    [1] SMDK2410\n"
+"    [2] QT2410\n"
+"    [3] FS2410\n"
+"    [4] GEC2410 GEC2440 V1.0 (CS8900A)\n"
+"    SMDK2440:\n"
+"    [5] SMDK2440\n"
+"    [6] QQ2440\n"
+"    [7] MINI2440 Micro2440\n"
+"    [8] GEC2440 V1.1 (DM9000AEP)\n"
+"    [9] TQ2410\n"
+"    [o] Other Boards\n"
+"    [s] Save settings to flash\n"
+"    [q] back to upset menu\n"
+);
+

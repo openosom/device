@@ -1,0 +1,19 @@
+
+if PACKAGE_uboot-s3c24xx
+
+choice
+	prompt "soc type"
+	default DEFAULT_SOC_TYPE
+
+	config DEFAULT_SOC_TYPE
+		bool "default"
+
+	config S3C2410_SOC_TYPE
+		bool "s3c2410"
+
+	config S3C2440_SOC_TYPE
+		bool "s3c2440"
+
+endchoice
+
+endif

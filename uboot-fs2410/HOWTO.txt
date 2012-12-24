@@ -1,0 +1,48 @@
+## How to use the uboot-fs2410
+
+默认的分区：
+384k(uboot),128k(uboot-env),5m(kernel),-(rootfs)
+ #: name                size            offset          mask_flags
+ 0: uboot               0x00060000      0x00000000      0
+ 1: uboot-env           0x00020000      0x00060000      0
+ 2: kernel              0x00500000      0x00080000      0
+ 3: rootfs              0x0fa80000      0x00580000      0
+
+一 更新uboot
+	[u-boot@fs2410] # set serverip 192.168.0.100
+	[u-boot@fs2410] # set ipaddr 192.168.0.200
+	[u-boot@fs2410] # tftp 0x31000000 uboot-fs2410.bin
+	[u-boot@fs2410] # nand erase 0x0000 0x60000
+	[u-boot@fs2410] # nand write 0x31000000 0x0000 0x60000
+
+二 NAND中启动（kernel在nand，rootfs在nand）
+1 把内核uImage复制为/tftboot/uImage.s3c24xx
+2 利用tftp把内核copy到内存中（假设放在内存的0x31000000处）：
+	[u-boot@fs2410] # tftp 0x31000000 uImage.s3c24xx
+3 把内存中的内核写到nand中（假设放在第2分区"kernel"中，文件大小应根据实际情况而定，不一定是0x200000）
+	[u-boot@fs2410] # nand erase 0x00080000 0x200000
+	[u-boot@fs2410] # nand write 0x31000000 0x00080000 0x200000
+
+1 把squashfs文件系统复制到/tftpboot/目录下（名称为openwrt-s3c24xx-squashfs.img）
+2 利用tftp把文件系统copy到内存中（假设放在内存的0x31000000处）：
+	[u-boot@fs2410] # reset
+	[u-boot@fs2410] # tftp 0x31000000 openwrt-s3c24xx-squashfs.img
+3 把内存中的文件系统写到nand中（假设放在第3分区"rootfs"中，文件大小应根据实际情况而定，不一定是0x00850000）
+	[u-boot@fs2410] # nand erase 0x00580000 0x00b00000
+	[u-boot@fs2410] # nand write 0x31000000 0x00580000 0x00b00000
+
+4 设置uboot启动参数：
+	[u-boot@fs2410] # reset
+	[u-boot@fs2410] # setenv nandtoram nand read 0x30008000 0x00080000 0x200000
+	[u-boot@fs2410] # setenv bootram bootm 0x30008000
+	[u-boot@fs2410] # setenv bootcmd run nandtoram\;run bootram
+
+	[u-boot@fs2410] # setenv bootargs console=ttySAC0,115200 root=/dev/mtdblock3
+	[u-boot@fs2410] # sa
+4 运行
+	[u-boot@fs2410] # boot
+
+5 进入fs2410的luci
+	把PC机的ip设置为192.168.1.xxx（因为fs2410目前的ip为192.168.1.1网段）
+	进入浏览器输入192.168.1.1，进入luci
+

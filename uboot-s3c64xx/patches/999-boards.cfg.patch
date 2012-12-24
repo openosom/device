@@ -1,0 +1,34 @@
+--- u-boot-2011.06//boards.cfg	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman//boards.cfg	2012-12-17 15:15:02.000000000 +0800
+@@ -133,6 +133,7 @@
+ nhk8815_onenand              arm         arm926ejs   nhk8815             st             nomadik       nhk8815:BOOT_ONENAND
+ omap5912osk                  arm         arm926ejs   -                   ti             omap
+ edminiv2                     arm         arm926ejs   -                   LaCie          orion5x
++mini6410                     arm         arm1176     mini6410            samsung        s3c64xx
+ dkb			     arm         arm926ejs   -                   Marvell        pantheon
+ ca9x4_ct_vxp                 arm         armv7       vexpress            armltd
+ efikamx                      arm         armv7       efikamx             -              mx5		mx51evk:IMX_CONFIG=board/efikamx/imximage.cfg
+--- u-boot-2011.06//MAINTAINERS	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman//MAINTAINERS	2012-12-17 15:15:02.000000000 +0800
+@@ -907,6 +907,11 @@
+ 
+ 	hawkboard	ARM926EJS (OMAP-L138)
+ 
++Alex Ling <kasimling at gmail.com>
++Tekkaman Ninja  <tekkamanninja at gmail.com>
++
++	MINI6410	ARM1176JZF-S (S3C6410)
++
+ -------------------------------------------------------------------------
+ 
+ Unknown / orphaned boards:
+--- u-boot-2011.06//MAKEALL	2011-06-28 04:22:42.000000000 +0800
++++ u-boot-2011.06-tekkaman//MAKEALL	2012-12-17 15:15:02.000000000 +0800
+@@ -413,6 +413,7 @@
+ 	qong			\
+ 	smdk6400		\
+ 	tnetv107x_evm		\
++	mini6410		\
+ "
+ 
+ #########################################################################

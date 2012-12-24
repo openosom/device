@@ -1,0 +1,83 @@
+--- u-boot-2010.03//cpu/arm920t/s3c24x0/Makefile	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//cpu/arm920t/s3c24x0/Makefile	2012-09-05 15:06:15.698689762 +0800
+@@ -30,7 +30,7 @@
+ COBJS-y	+= timer.o
+ COBJS-y	+= usb.o
+ COBJS-y	+= usb_ohci.o
+-
++COBJS-y	+= mmc.o
+ 
+ SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
+ OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
+--- u-boot-2010.03//cpu/arm920t/s3c24x0/timer.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//cpu/arm920t/s3c24x0/timer.c	2012-09-05 15:06:15.698689762 +0800
+@@ -181,6 +181,7 @@
+ 	tbclk = timer_load_val * 100;
+ #elif defined(CONFIG_SBC2410X) || \
+       defined(CONFIG_SMDK2410) || \
++      defined(CONFIG_SMDK2440) || \
+       defined(CONFIG_VCMA9)
+ 	tbclk = CONFIG_SYS_HZ;
+ #else
+--- u-boot-2010.03//cpu/arm920t/s3c24x0/speed.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//cpu/arm920t/s3c24x0/speed.c	2012-09-05 15:06:15.698689762 +0800
+@@ -63,7 +63,13 @@
+ 	m = ((r & 0xFF000) >> 12) + 8;
+ 	p = ((r & 0x003F0) >> 4) + 2;
+ 	s = r & 0x3;
+-
++//tekkaman
++#if defined(CONFIG_S3C2440)
++	if (pllreg == MPLL)
++	return ((CONFIG_SYS_CLK_FREQ * m * 2) /(p << s));
++	else if (pllreg == UPLL)
++#endif
++//tekkaman
+ 	return (CONFIG_SYS_CLK_FREQ * m) / (p << s);
+ }
+ 
+@@ -78,7 +84,21 @@
+ {
+ 	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
+ 
+-	return (readl(&clk_power->CLKDIVN) & 2) ? get_FCLK() / 2 : get_FCLK();
++//	return (readl(&clk_power->CLKDIVN) & 2) ? get_FCLK() / 2 : get_FCLK();
++//tekkaman
++#if defined(CONFIG_S3C2440)
++	if (readl(&clk_power->CLKDIVN) & 0x6) 
++				{
++				if ((readl(&clk_power->CLKDIVN) & 0x6)==2) return(get_FCLK()/2);
++				if ((readl(&clk_power->CLKDIVN) & 0x6)==6) return((readl(&clk_power->CAMDIVN) & 0x100) ? get_FCLK()/6 : get_FCLK()/3);
++				if ((readl(&clk_power->CLKDIVN) & 0x6)==4) return((readl(&clk_power->CAMDIVN) & 0x200) ? get_FCLK()/8 : get_FCLK()/4);
++				return(get_FCLK());
++				}
++	else	return(get_FCLK());
++#else
++	return((readl(&clk_power->CLKDIVN) & 0x2) ? get_FCLK()/2 : get_FCLK());
++#endif
++//tekkaman
+ }
+ 
+ /* return PCLK frequency */
+--- u-boot-2010.03//cpu/arm920t/s3c24x0/interrupts.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//cpu/arm920t/s3c24x0/interrupts.c	2012-09-05 15:06:15.698689762 +0800
+@@ -34,9 +34,19 @@
+ #include <asm/arch/s3c24x0_cpu.h>
+ #include <asm/proc-armv/ptrace.h>
+ 
++#include <asm/io.h>
++
+ void do_irq (struct pt_regs *pt_regs)
+ {
+ 	struct s3c24x0_interrupt *irq = s3c24x0_get_base_interrupt();
+ 	u_int32_t intpnd = readl(&irq->INTPND);
+ 
+ }
++
++//Apollo +
++
++int arch_interrupt_init (void)
++{
++	return 0;
++}
++//Apollo -

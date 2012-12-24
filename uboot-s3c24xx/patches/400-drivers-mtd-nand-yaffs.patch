@@ -1,0 +1,300 @@
+diff -Nur u-boot-2010.03//drivers/mtd/mtdcore.c u-boot-2010.03-24xx//drivers/mtd/mtdcore.c
+--- u-boot-2010.03//drivers/mtd/mtdcore.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//drivers/mtd/mtdcore.c	2012-09-05 15:06:15.702689762 +0800
+@@ -10,6 +10,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/compat.h>
+ #include <ubi_uboot.h>
++#include "config.h"
+ 
+ struct mtd_info *mtd_table[MAX_MTD_DEVICES];
+ 
+diff -Nur u-boot-2010.03//drivers/mtd/nand/nand_base.c u-boot-2010.03-24xx//drivers/mtd/nand/nand_base.c
+--- u-boot-2010.03//drivers/mtd/nand/nand_base.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//drivers/mtd/nand/nand_base.c	2012-09-05 15:06:15.702689762 +0800
+@@ -2097,7 +2097,30 @@
+ {
+ 	struct nand_chip *chip = mtd->priv;
+ 	int ret;
+-
++#if defined(ENABLE_CMD_NAND_YAFFS)
++	/*Thanks for hugerat's code!*/
++	
++	int oldopsmode = 0;
++	if(mtd->rw_oob==1)	{
++		size_t oobsize = mtd->oobsize;  
++		size_t datasize = mtd->writesize;
++		int i = 0;
++		uint8_t oobtemp[oobsize];
++		int datapages = 0;
++		datapages = len/(datasize);
++		for(i=0;i<(datapages);i++)	{
++			memcpy((void *)oobtemp,
++				(void *)(buf+datasize*(i+1)),
++				oobsize);
++			memmove((void *)(buf+datasize*(i+1)),
++				(void *)(buf+datasize*(i+1)+oobsize),
++				(datapages-(i+1))*(datasize)+(datapages-1)*oobsize);
++			memcpy((void *)(buf+(datapages)*(datasize+oobsize)-oobsize),
++				(void *)(oobtemp),
++				oobsize);
++		}
++	}
++#endif
+ 	/* Do not allow reads past end of device */
+ 	if ((to + len) > mtd->size)
+ 		return -EINVAL;
+@@ -2108,14 +2131,30 @@
+ 
+ 	chip->ops.len = len;
+ 	chip->ops.datbuf = (uint8_t *)buf;
+-	chip->ops.oobbuf = NULL;
+ 
++#if defined(ENABLE_CMD_NAND_YAFFS)
++	/*Thanks for hugerat's code!*/
++	if(mtd->rw_oob!=1)	{
++	  chip->ops.oobbuf = NULL;
++	} else	{
++	  chip->ops.oobbuf = (uint8_t *)(buf+len); 
++	  chip->ops.ooblen = mtd->oobsize;
++	  oldopsmode = chip->ops.mode;
++	  chip->ops.mode = MTD_OOB_RAW; 
++	}
++#else
++	chip->ops.oobbuf = NULL;
++#endif
+ 	ret = nand_do_write_ops(mtd, to, &chip->ops);
+ 
+ 	*retlen = chip->ops.retlen;
+ 
+ 	nand_release_device(mtd);
+ 
++#if defined(ENABLE_CMD_NAND_YAFFS)
++	/*Thanks for hugerat's code!*/
++	chip->ops.mode = oldopsmode;
++#endif
+ 	return ret;
+ }
+ 
+diff -Nur u-boot-2010.03//drivers/mtd/nand/nand_util.c u-boot-2010.03-24xx//drivers/mtd/nand/nand_util.c
+--- u-boot-2010.03//drivers/mtd/nand/nand_util.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//drivers/mtd/nand/nand_util.c	2012-09-05 15:06:15.702689762 +0800
+@@ -476,6 +476,26 @@
+ 	size_t left_to_write = *length;
+ 	size_t len_incl_bad;
+ 	u_char *p_buffer = buffer;
++#if defined(ENABLE_CMD_NAND_YAFFS)
++	/*Thanks for hugerat's code*/
++	
++	if(nand->rw_oob==1)	{
++		size_t oobsize = nand->oobsize;  
++		size_t datasize = nand->writesize;
++		int datapages = 0;
++
++	   
++		if (((*length)%(nand->oobsize+nand->writesize)) != 0) {
++		    printf ("Attempt to write error length data!\n");
++		    return -EINVAL;
++	    }
++
++		datapages = *length/(datasize+oobsize);
++		*length = datapages*datasize;
++		left_to_write = *length;
++//		nand->skipfirstblock=1;
++	}
++#endif
+ 
+ 	/* Reject writes, which are not page aligned */
+ 	if ((offset & (nand->writesize - 1)) != 0 ||
+@@ -490,7 +510,9 @@
+ 		printf ("Attempt to write outside the flash area\n");
+ 		return -EINVAL;
+ 	}
+-
++	
++#if !defined(ENABLE_CMD_NAND_YAFFS)
++/*by hugerat,phase 6 */
+ 	if (len_incl_bad == *length) {
+ 		rval = nand_write (nand, offset, length, buffer);
+ 		if (rval != 0)
+@@ -499,7 +521,7 @@
+ 
+ 		return rval;
+ 	}
+-
++#endif
+ 	while (left_to_write > 0) {
+ 		size_t block_offset = offset & (nand->erasesize - 1);
+ 		size_t write_size;
+@@ -512,12 +534,21 @@
+ 			offset += nand->erasesize - block_offset;
+ 			continue;
+ 		}
+-
++#if defined(ENABLE_CMD_NAND_YAFFS)
++		/*Thanks for hugerat's code*/
++		if(nand->skipfirstblk==1)	{		
++			nand->skipfirstblk=0;
++			printf ("Skip the first good block %llx\n",
++				offset & ~(nand->erasesize - 1));
++			offset += nand->erasesize - block_offset;
++			continue;
++		}
++#endif
+ 		if (left_to_write < (nand->erasesize - block_offset))
+ 			write_size = left_to_write;
+ 		else
+ 			write_size = nand->erasesize - block_offset;
+-
++		printf("\rWriting at 0x%llx -- ",offset);	/*Thanks for hugerat's code*/
+ 		rval = nand_write (nand, offset, &write_size, p_buffer);
+ 		if (rval != 0) {
+ 			printf ("NAND write to offset %llx failed %d\n",
+@@ -527,8 +558,18 @@
+ 		}
+ 
+ 		left_to_write -= write_size;
++		printf("%d%% is complete.",100-(left_to_write/(*length/100)));/*Thanks for hugerat's code*/
+ 		offset        += write_size;
++#if defined(ENABLE_CMD_NAND_YAFFS)
++		/*Thanks for hugerat's code*/
++		if(nand->rw_oob==1)	{
++			p_buffer += write_size+(write_size/nand->writesize*nand->oobsize);
++		} else	{
++			p_buffer += write_size;
++		}
++#else
+ 		p_buffer      += write_size;
++#endif
+ 	}
+ 
+ 	return 0;
+diff -Nur u-boot-2010.03//drivers/mtd/nand/s3c2410_nand.c u-boot-2010.03-24xx//drivers/mtd/nand/s3c2410_nand.c
+--- u-boot-2010.03//drivers/mtd/nand/s3c2410_nand.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//drivers/mtd/nand/s3c2410_nand.c	2012-09-05 15:06:15.702689762 +0800
+@@ -24,6 +24,9 @@
+ #include <asm/arch/s3c24x0_cpu.h>
+ #include <asm/io.h>
+ 
++#define	NF_BASE		0x4e000000
++
++#if defined(CONFIG_S3C2410)
+ #define S3C2410_NFCONF_EN          (1<<15)
+ #define S3C2410_NFCONF_512BYTE     (1<<14)
+ #define S3C2410_NFCONF_4STEP       (1<<13)
+@@ -35,6 +38,22 @@
+ 
+ #define S3C2410_ADDR_NALE 4
+ #define S3C2410_ADDR_NCLE 8
++#endif
++
++#if defined(CONFIG_S3C2440)
++#define S3C2410_NFCONT_EN          (1<<0)
++#define S3C2410_NFCONT_INITECC     (1<<4)
++#define S3C2410_NFCONT_nFCE        (1<<1)
++#define S3C2410_NFCONT_MAINECCLOCK (1<<5)
++#define S3C2410_NFCONF_TACLS(x)    ((x)<<12)
++#define S3C2410_NFCONF_TWRPH0(x)   ((x)<<8)
++#define S3C2410_NFCONF_TWRPH1(x)   ((x)<<4)
++
++#define S3C2410_ADDR_NALE 0x08
++#define S3C2410_ADDR_NCLE 0x0c
++#endif
++
++ulong IO_ADDR_W = NF_BASE; 
+ 
+ #ifdef CONFIG_NAND_SPL
+ 
+@@ -53,21 +72,22 @@
+ 
+ static void s3c2410_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+ {
+-	struct nand_chip *chip = mtd->priv;
++//	struct nand_chip *chip = mtd->priv;
+ 	struct s3c2410_nand *nand = s3c2410_get_base_nand();
+ 
+ 	debugX(1, "hwcontrol(): 0x%02x 0x%02x\n", cmd, ctrl);
+ 
+ 	if (ctrl & NAND_CTRL_CHANGE) {
+-		ulong IO_ADDR_W = (ulong)nand;
++		IO_ADDR_W = (ulong)nand;
+ 
+ 		if (!(ctrl & NAND_CLE))
+ 			IO_ADDR_W |= S3C2410_ADDR_NCLE;
+ 		if (!(ctrl & NAND_ALE))
+ 			IO_ADDR_W |= S3C2410_ADDR_NALE;
+ 
+-		chip->IO_ADDR_W = (void *)IO_ADDR_W;
++//		chip->IO_ADDR_W = (void *)IO_ADDR_W;
+ 
++#if defined(CONFIG_S3C2410)
+ 		if (ctrl & NAND_NCE)
+ 			writel(readl(&nand->NFCONF) & ~S3C2410_NFCONF_nFCE,
+ 			       &nand->NFCONF);
+@@ -75,9 +95,19 @@
+ 			writel(readl(&nand->NFCONF) | S3C2410_NFCONF_nFCE,
+ 			       &nand->NFCONF);
+ 	}
++#endif
++#if defined(CONFIG_S3C2440)
++		if (ctrl & NAND_NCE)
++			writel(readl(&nand->NFCONT) & ~S3C2410_NFCONT_nFCE,
++			       &nand->NFCONT);
++		else
++			writel(readl(&nand->NFCONT) | S3C2410_NFCONT_nFCE,
++			       &nand->NFCONT);
++	}
++#endif
+ 
+ 	if (cmd != NAND_CMD_NONE)
+-		writeb(cmd, chip->IO_ADDR_W);
++		writeb(cmd, (void *)IO_ADDR_W);
+ }
+ 
+ static int s3c2410_dev_ready(struct mtd_info *mtd)
+@@ -92,7 +122,13 @@
+ {
+ 	struct s3c2410_nand *nand = s3c2410_get_base_nand();
+ 	debugX(1, "s3c2410_nand_enable_hwecc(%p, %d)\n", mtd, mode);
++#if defined(CONFIG_S3C2410)
+ 	writel(readl(&nand->NFCONF) | S3C2410_NFCONF_INITECC, &nand->NFCONF);
++#endif
++
++#if defined(CONFIG_S3C2440)
++	writel(readl(&nand->NFCONT) | S3C2410_NFCONT_INITECC, &nand->NFCONT);
++#endif
+ }
+ 
+ static int s3c2410_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
+@@ -132,6 +168,7 @@
+ 
+ 	writel(readl(&clk_power->CLKCON) | (1 << 4), &clk_power->CLKCON);
+ 
++#if defined(CONFIG_S3C2410)
+ 	/* initialize hardware */
+ 	twrph0 = 3;
+ 	twrph1 = 0;
+@@ -145,6 +182,23 @@
+ 
+ 	/* initialize nand_chip data structure */
+ 	nand->IO_ADDR_R = nand->IO_ADDR_W = (void *)&nand_reg->NFDATA;
++#endif
++#if defined(CONFIG_S3C2440)
++	twrph0 = 4;
++	twrph1 = 2;
++	tacls = 0;
++
++	cfg = 0;
++	cfg |= S3C2410_NFCONF_TACLS(tacls - 1);
++	cfg |= S3C2410_NFCONF_TWRPH0(twrph0 - 1);
++	cfg |= S3C2410_NFCONF_TWRPH1(twrph1 - 1);
++	writel(cfg, &nand_reg->NFCONF);
++
++	cfg = (0<<13)|(0<<12)|(0<<10)|(0<<9)|(0<<8)|(0<<6)|(0<<5)|(1<<4)|(0<<1)|(1<<0);
++	writel(cfg, &nand_reg->NFCONT);
++	/* initialize nand_chip data structure */
++	nand->IO_ADDR_R = nand->IO_ADDR_W = (void *)&nand_reg->NFDATA;
++#endif
+ 
+ 	nand->select_chip = NULL;
+ 

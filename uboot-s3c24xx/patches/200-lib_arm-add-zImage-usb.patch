@@ -1,0 +1,119 @@
+--- u-boot-2010.03//lib_arm/Makefile	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//lib_arm/Makefile	2012-09-05 15:06:15.710689762 +0800
+@@ -39,6 +39,7 @@
+ COBJS-y	+= board.o
+ COBJS-y	+= bootm.o
+ COBJS-y	+= cache.o
++COBJS-y	+= boot_zImage.o
+ ifndef CONFIG_SYS_NO_CP15_CACHE
+ COBJS-y	+= cache-cp15.o
+ endif
+--- u-boot-2010.03//lib_arm/bootm.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//lib_arm/bootm.c	2012-09-05 15:06:15.710689762 +0800
+@@ -74,10 +74,11 @@
+ 
+ 	s = getenv ("machid");
+ 	if (s) {
+-		machid = simple_strtoul (s, NULL, 16);
++		machid = simple_strtoul (s, NULL, 10);
+ 		printf ("Using machid 0x%x from environment\n", machid);
+ 	}
+-
++	printf ("MACH_TYPE_ID_HEX=0x%x MACH_TYPE_ID_DEC=%d\n", machid, machid);
++	printf ("LINUX_BOOT_CMD=%s\n", commandline);
+ 	show_boot_progress (15);
+ 
+ 	debug ("## Transferring control to Linux (at address %08lx) ...\n",
+--- u-boot-2010.03//lib_arm/board.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx//lib_arm/board.c	2012-09-05 15:06:15.710689762 +0800
+@@ -49,6 +49,8 @@
+ #include <nand.h>
+ #include <onenand_uboot.h>
+ #include <mmc.h>
++#include <asm/arch/s3c24x0_cpu.h>   
++#include <asm/io.h>
+ 
+ #ifdef CONFIG_BITBANGMII
+ #include <miiphy.h>
+@@ -70,6 +72,10 @@
+ extern void dataflash_print_info(void);
+ #endif
+ 
++#ifdef CONFIG_USB_DEVICE
++extern void usb_init_slave(void);
++#endif
++
+ #ifndef CONFIG_IDENT_STRING
+ #define CONFIG_IDENT_STRING ""
+ #endif
+@@ -86,7 +92,7 @@
+ #include <i2c.h>
+ #endif
+ 
+-
++#if 0
+ /************************************************************************
+  * Coloured LED functionality
+  ************************************************************************
+@@ -110,6 +116,7 @@
+ void blue_LED_on(void) __attribute__((weak, alias("__blue_LED_on")));
+ void inline __blue_LED_off(void) {}
+ void blue_LED_off(void) __attribute__((weak, alias("__blue_LED_off")));
++#endif
+ 
+ /************************************************************************
+  * Init Utilities							*
+@@ -135,7 +142,12 @@
+ 
+ static int display_banner (void)
+ {
+-	printf ("\n\n%s\n\n", version_string);
++#if defined(CONFIG_SMDK2440_LED) 	
++	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
++	writel(0x100, &gpio->GPBDAT);  
++#endif
++	printf ("\n\n%s %s\n\n", (bBootFrmNORFlash == 1?"NOR":"NAND"), version_string);	
++
+ 	debug ("U-Boot code: %08lX -> %08lX  BSS: -> %08lX\n",
+ 	       _armboot_start, _bss_start, _bss_end);
+ #ifdef CONFIG_MODEM_SUPPORT
+@@ -275,7 +287,9 @@
+ #if defined(CONFIG_VFD) || defined(CONFIG_LCD)
+ 	unsigned long addr;
+ #endif
+-
++#if defined(CONFIG_SMDK2440_LED) 	
++	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
++#endif
+ 	/* Pointer is writable since we allocated a register for it */
+ 	gd = (gd_t*)(_armboot_start - CONFIG_SYS_MALLOC_LEN - sizeof(gd_t));
+ 	/* compiler optimization barrier needed for GCC >= 3.4 */
+@@ -381,10 +395,12 @@
+ 	/* miscellaneous platform dependent initialisations */
+ 	misc_init_r ();
+ #endif
+-
+ 	/* enable exceptions */
+ 	enable_interrupts ();
+ 
++#ifdef CONFIG_USB_DEVICE
++	usb_init_slave();
++#endif
+ 	/* Perform network card initialisation if necessary */
+ #ifdef CONFIG_DRIVER_TI_EMAC
+ 	/* XXX: this needs to be moved to board init */
+@@ -437,6 +453,14 @@
+ 	reset_phy();
+ #endif
+ #endif
++#if defined(CONFIG_SMDK2440_LED) 	
++	writel(0x0, &gpio->GPBDAT);  
++#endif
++
++
++#if defined(CONFIG_CFB_CONSOLE)        
++
++#endif
+ 	/* main_loop() can return to retry autoboot, if so just run it again. */
+ 	for (;;) {
+ 		main_loop ();

@@ -1,0 +1,11 @@
+--- u-boot-2010.03/net/nfs.c	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-24xx/net/nfs.c	2012-09-05 15:06:15.710689762 +0800
+@@ -31,7 +31,7 @@
+ 
+ #define HASHES_PER_LINE 65	/* Number of "loading" hashes per line	*/
+ #define NFS_RETRY_COUNT 30
+-#define NFS_TIMEOUT 2000UL
++#define NFS_TIMEOUT (10*2000UL)
+ 
+ static int fs_mounted = 0;
+ static unsigned long rpc_id = 0;

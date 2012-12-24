@@ -1,0 +1,212 @@
+diff -Nur u-boot-1.1.6/Makefile u-boot-1.1.6-fs2410//Makefile
+--- u-boot-1.1.6/Makefile	2006-11-02 22:15:01.000000000 +0800
++++ u-boot-1.1.6-fs2410//Makefile	2011-07-18 16:52:25.000000000 +0800
+@@ -116,6 +116,7 @@
+ # load ARCH, BOARD, and CPU configuration
+ include $(OBJTREE)/include/config.mk
+ export	ARCH CPU BOARD VENDOR SOC
++CROSS_COMPILE = arm-openwrt-linux-
+ 
+ ifndef CROSS_COMPILE
+ ifeq ($(HOSTARCH),ppc)
+@@ -1876,6 +1877,9 @@
+ smdk2400_config	:	unconfig
+ 	@$(MKCONFIG) $(@:_config=) arm arm920t smdk2400 NULL s3c24x0
+ 
++arm2410_config 	:	unconfig
++	@$(MKCONFIG) $(@:_config=) arm arm920t arm2410 NULL s3c24x0
++
+ smdk2410_config	:	unconfig
+ 	@$(MKCONFIG) $(@:_config=) arm arm920t smdk2410 NULL s3c24x0
+ 
+diff -Nur u-boot-1.1.6/common/env_nand.c u-boot-1.1.6-fs2410//common/env_nand.c
+--- u-boot-1.1.6/common/env_nand.c	2006-11-02 22:15:01.000000000 +0800
++++ u-boot-1.1.6-fs2410//common/env_nand.c	2011-07-18 19:56:22.000000000 +0800
+@@ -37,8 +37,31 @@
+ #include <environment.h>
+ #include <linux/stddef.h>
+ #include <malloc.h>
++
++#if (CONFIG_COMMANDS & CFG_CMD_NAND)
++#ifdef CFG_NAND_LEGACY
++#include <linux/mtd/nand_legacy.h>
++extern struct nand_chip nand_dev_desc[CFG_MAX_NAND_DEVICE];
++extern int curr_device;
++extern int nand_legacy_erase(struct nand_chip *nand, size_t ofs,
++	size_t len, int clean);
++extern int nand_legacy_rw(struct nand_chip *nand, int cmd, size_t start,
++	size_t len, size_t *retlen, u_char *buf);
++extern void nand_print(struct nand_chip *nand);
++extern void nand_print_bad(struct nand_chip *nand);
++extern int nand_read_oob(struct nand_chip *nand, size_t ofs,
++	size_t len, size_t *retlen, u_char *buf);
++extern int nand_write_oob(struct nand_chip *nand, size_t ofs,
++	size_t len, size_t *retlen, u_char *buf);
++struct nand_chip *nand = &nand_dev_desc[0];
++
++#else /*!CFG_NAND_LEGACY*/
++#include <linux/mtd/nand.h>
+ #include <nand.h>
+ 
++#endif /*CFG_NAND_LEGACY*/
++#endif /*(CONFIG_COMMANDS & CFG_CMD_NAND)*/
++
+ #if ((CONFIG_COMMANDS&(CFG_CMD_ENV|CFG_CMD_NAND)) == (CFG_CMD_ENV|CFG_CMD_NAND))
+ #define CMD_SAVEENV
+ #elif defined(CFG_ENV_OFFSET_REDUND)
+@@ -53,12 +76,12 @@
+ #error CONFIG_INFERNO not supported yet
+ #endif
+ 
+-int nand_legacy_rw (struct nand_chip* nand, int cmd,
++/*int nand_legacy_rw (struct nand_chip* nand, int cmd,
+ 	    size_t start, size_t len,
+ 	    size_t * retlen, u_char * buf);
+-
++*/
+ /* info for NAND chips, defined in drivers/nand/nand.c */
+-extern nand_info_t nand_info[];
++//extern nand_info_t nand_info[];
+ 
+ /* references to names in env_common.c */
+ extern uchar default_environment[];
+@@ -188,8 +211,9 @@
+ #else /* ! CFG_ENV_OFFSET_REDUND */
+ int saveenv(void)
+ {
+-	ulong total;
+ 	int ret = 0;
++#ifndef CFG_NAND_LEGACY
++	ulong total;
+ 
+ 	puts ("Erasing Nand...");
+ 	if (nand_erase(&nand_info[0], CFG_ENV_OFFSET, CFG_ENV_SIZE))
+@@ -198,8 +222,24 @@
+ 	puts ("Writing to Nand... ");
+ 	total = CFG_ENV_SIZE;
+ 	ret = nand_write(&nand_info[0], CFG_ENV_OFFSET, &total, (u_char*)env_ptr);
+-	if (ret || total != CFG_ENV_SIZE)
++
++#else
++	ulong off = CFG_ENV_OFFSET;
++	ulong size = CFG_ENV_SIZE;
++	puts("Erasing Nand Environment...");
++	ret =nand_legacy_erase(nand,off,size,1);
++	printf("%s\n", ret?"ERROR\n":"OK\n");
++	if(ret !=0) return ret;
++	puts("Writing new Environment Variables to Nand...");
++	int total;
++	ret =nand_legacy_rw(nand,0x0,off,size,(size_t *)&total,(u_char *)env_ptr);
++
++#endif /*CFG_NAND_LEGACY*/
++
++	if (ret || total != CFG_ENV_SIZE){
++		puts("undone!!!\n");
+ 		return 1;
++	}
+ 
+ 	puts ("done\n");
+ 	return ret;
+@@ -268,6 +308,7 @@
+ void env_relocate_spec (void)
+ {
+ #if !defined(ENV_IS_EMBEDDED)
++#ifndef CFG_NAND_LEGACY
+ 	ulong total;
+ 	int ret;
+ 
+@@ -278,6 +319,17 @@
+ 
+ 	if (crc32(0, env_ptr->data, ENV_SIZE) != env_ptr->crc)
+ 		return use_default();
++#else
++	ulong total;
++	int ret;
++	ret = nand_legacy_rw(nand,1,CFG_ENV_OFFSET,CFG_ENV_SIZE,
++		(size_t *)&total, (u_char *)env_ptr);
++	if(ret || total != CFG_ENV_SIZE)
++		return use_default();
++	if(crc32(0,env_ptr->data,ENV_SIZE) != env_ptr->crc)
++		return use_default();
++#endif /*CFG_NAND_LEGACY*/
++
+ #endif /* ! ENV_IS_EMBEDDED */
+ }
+ #endif /* CFG_ENV_OFFSET_REDUND */
+diff -Nur u-boot-1.1.6/cpu/arm920t/start.S u-boot-1.1.6-fs2410//cpu/arm920t/start.S
+--- u-boot-1.1.6/cpu/arm920t/start.S	2006-11-02 22:15:01.000000000 +0800
++++ u-boot-1.1.6-fs2410//cpu/arm920t/start.S	2011-07-18 19:34:39.000000000 +0800
+@@ -161,6 +161,13 @@
+ #endif
+ 
+ #ifndef CONFIG_SKIP_RELOCATE_UBOOT
++
++#ifdef CONFIG_S3C2410_NAND_BOOT
++/*relocate uboot frome NAND Flash instead of NOR Flash*/
++bl	copy_myself
++
++#else
++
+ relocate:				/* relocate U-Boot to RAM	    */
+ 	adr	r0, _start		/* r0 <- current position of code   */
+ 	ldr	r1, _TEXT_BASE		/* test if we run from flash or RAM */
+@@ -177,6 +184,8 @@
+ 	stmia	r1!, {r3-r10}		/* copy to   target address [r1]    */
+ 	cmp	r0, r2			/* until source end addreee [r2]    */
+ 	ble	copy_loop
++
++#endif 	/* CONFIG_S3C2410_NAND_BOOT*/
+ #endif	/* CONFIG_SKIP_RELOCATE_UBOOT */
+ 
+ 	/* Set up the stack						    */
+@@ -224,6 +233,39 @@
+ 
+ _start_armboot:	.word start_armboot
+ 
++#ifdef CONFIG_S3C2410_NAND_BOOT
++copy_myself:
++	mov r10, lr
++	ldr sp, DW_STACK_START
++	mov fp, #0
++	bl NF_Init
++
++	@read UBOOT from NAND FLASH to RAM
++	ldr r0, =UBOOT_RAM_BASE
++	mov r1, #0x0
++	mov r2, #0x20000
++	bl nand_read_whole
++	tst r0, #0x0
++	beq ok_nand_read
++1:	b 1b
++ok_nand_read:
++	mov r0, #0x00000000
++	ldr r1, =UBOOT_RAM_BASE
++	mov r2, #0x400
++go_next:
++	ldr r3, [r0], #4
++	ldr r4, [r1], #4
++	teq r3, r4
++	bne notmatch
++	subs r2, r2, #4
++	beq done_nand_read
++	bne go_next
++notmatch:
++1:	b 1b
++done_nand_read:
++	mov pc, r10
++
++#endif /*CONFIG_S3C2410_NAND_BOOT*/
+ 
+ /*
+  *************************************************************************
+@@ -432,3 +474,10 @@
+ 	bl 	do_fiq
+ 
+ #endif
++
++#ifdef CONFIG_S3C2410_NAND_BOOT
++	.align	2
++DW_STACK_START:
++	.word	STACK_BASE + STACK_SIZE - 4
++#endif
++

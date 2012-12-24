@@ -1,0 +1,147 @@
+diff -Nur u-boot-2010.03///cpu/arm920t/start.S u-boot-2010.03-fs2410///cpu/arm920t/start.S
+--- u-boot-2010.03///cpu/arm920t/start.S	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-fs2410///cpu/arm920t/start.S	2012-12-16 12:07:56.622890698 +0800
+@@ -26,6 +26,12 @@
+ 
+ #include <common.h>
+ #include <config.h>
++
++
++
++
++
++
+ 
+ /*
+  *************************************************************************
+@@ -143,6 +149,7 @@
+ #  define INTMSK	0x4A000008	/* Interupt-Controller base addresses */
+ #  define INTSUBMSK	0x4A00001C
+ #  define CLKDIVN	0x4C000014	/* clock divisor register */
++#  define BWSCON	0x48000000
+ # endif
+ 
+ 	ldr	r0, =pWTCON
+@@ -156,7 +163,7 @@
+ 	ldr	r0, =INTMSK
+ 	str	r1, [r0]
+ # if defined(CONFIG_S3C2410)
+-	ldr	r1, =0x3ff
++	ldr	r1, =0x7ff
+ 	ldr	r0, =INTSUBMSK
+ 	str	r1, [r0]
+ # endif
+@@ -176,6 +183,11 @@
+ 	bl	cpu_init_crit
+ #endif
+ 
++	ldr	r0, =BWSCON
++	ldr	r0, [r0]
++	ands	r0, r0, #6
++	beq	nand_boot
++
+ #ifndef CONFIG_SKIP_RELOCATE_UBOOT
+ relocate:				/* relocate U-Boot to RAM	    */
+ 	adr	r0, _start		/* r0 <- current position of code   */
+@@ -195,6 +207,77 @@
+ 	ble	copy_loop
+ #endif	/* CONFIG_SKIP_RELOCATE_UBOOT */
+ 
++	bl	stack_setup
++
++/* ------- NAND BOOT -------- */
++nand_boot:
++
++#ifdef CONFIG_S3C2410_NAND_BOOT
++@ reset NAND
++	mov	r1, #NAND_CTL_BASE
++	ldr	r2, =0xf830		@ initial value
++	str	r2, [r1, #oNFCONF]
++	ldr	r2, [r1, #oNFCONF]
++	bic	r2, r2, #0x800		@ enable chip
++	str	r2, [r1, #oNFCONF]
++	mov	r2, #0xff		@ RESET command
++	strb	r2, [r1, #oNFCMD]
++
++	mov	r3, #0			@ wait
++
++nand1:
++	add	r3, r3, #0x1
++	cmp	r3, #0xa
++	blt	nand1
++
++nand2:
++	ldr	r2, [r1, #oNFSTAT]	@ wait ready
++	tst	r2, #0x1
++	beq	nand2
++
++	ldr	r2, [r1, #oNFCONF]
++	orr	r2, r2, #0x800 @ disable chip
++	str	r2, [r1, #oNFCONF]
++
++@ get read to call C functions (for nand_read())
++	ldr	sp, DW_STACK_START	@ setup stack pointer
++	mov	fp, #0			@ noprevious frame, so fp=0
++
++@ copy U-Boot to RAM
++	ldr	r0, =TEXT_BASE
++	mov	r1, #0x0
++	mov	r2, #0x30000
++	bl	nand_read_ll
++	tst	r0, #0x0
++	beq	ok_nand_read
++
++bad_nand_read:
++loop2:	b	loop2			@ infinite loop
++
++ok_nand_read:
++
++
++
++@ verify
++	mov	r0, #0
++	ldr	r1, =TEXT_BASE
++	mov	r2, #0x400		@ 4 bytes * 1024 = 4K-bytes
++go_next:
++	ldr	r3, [r0], #4
++	ldr	r4, [r1], #4
++	teq	r3, r4
++	bne	notmatch
++	subs	r2, r2, #4
++	beq	stack_setup
++	bne	go_next
++
++notmatch:
++loop3:	b	loop3			@ infinite loop
++
++#endif @ CONFIG_S3C2410_NAND_BOOT
++
++/* -------end NAND BOOT ----- */
++
+ 	/* Set up the stack						    */
+ stack_setup:
+ 	ldr	r0, _TEXT_BASE		/* upper 128 KiB: relocated uboot   */
+@@ -219,6 +302,11 @@
+ 
+ _start_armboot:	.word start_armboot
+ 
++#ifdef CONFIG_S3C2410_NAND_BOOT
++.align 2
++DW_STACK_START:	.word STACK_BASE + STACK_SIZE - 4
++#endif
++
+ 
+ /*
+  *************************************************************************
+diff -Nur u-boot-2010.03///cpu/arm920t/u-boot.lds u-boot-2010.03-fs2410///cpu/arm920t/u-boot.lds
+--- u-boot-2010.03///cpu/arm920t/u-boot.lds	2010-04-01 05:54:39.000000000 +0800
++++ u-boot-2010.03-fs2410///cpu/arm920t/u-boot.lds	2012-12-16 12:58:54.146892110 +0800
+@@ -40,6 +40,8 @@
+ 	.text :
+ 	{
+ 		cpu/arm920t/start.o	(.text)
++		board/samsung/fs2410/lowlevel_init.o	(.text)
++		board/samsung/fs2410/nand_read.o	(.text)
+ 		*(.text)
+ 	}
+ 

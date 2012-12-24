@@ -1,0 +1,195 @@
+--- u-boot-2010.03/drivers/net/dm9000x.c	2012-12-13 13:38:25.723112637 +0800
++++ u-boot-2010.03-tekkaman/drivers/net/dm9000x.c	2012-09-06 19:14:26.000000000 +0800
+@@ -69,6 +69,7 @@
+ /* Board/System/Debug information/definition ---------------- */
+ 
+ /* #define CONFIG_DM9000_DEBUG */
++
+ #ifdef CONFIG_DM9000_DEBUG
+ #define DM9000_DBG(fmt,args...) printf(fmt, ##args)
+ #define DM9000_DMP_PACKET(func,packet,length)  \
+@@ -86,12 +87,6 @@
+ #define DM9000_DMP_PACKET(func,packet,length)
+ #endif
+ 
+-unsigned int dm9000_base_addr = CONFIG_DM9000_BASE;
+-unsigned int dm9000_data_addr = DM9000_DATA;
+-unsigned int dm9000_io_addr = DM9000_DATA;
+-
+-
+-
+ /* Structure/enum declaration ------------------------------- */
+ typedef struct board_info {
+ 	u32 runt_length_counter;	/* counter: RX length < 64byte */
+@@ -150,7 +145,7 @@
+ {
+ 	int i;
+ 	for (i = 0; i < count; i++)
+-		DM9000_outb((((u8 *) data_ptr)[i] & 0xff), dm9000_data_addr);
++		DM9000_outb((((u8 *) data_ptr)[i] & 0xff), DM9000_DATA);
+ }
+ 
+ static void dm9000_outblk_16bit(volatile void *data_ptr, int count)
+@@ -159,7 +154,7 @@
+ 	u32 tmplen = (count + 1) / 2;
+ 
+ 	for (i = 0; i < tmplen; i++)
+-		DM9000_outw(((u16 *) data_ptr)[i], dm9000_data_addr);
++		DM9000_outw(((u16 *) data_ptr)[i], DM9000_DATA);
+ }
+ static void dm9000_outblk_32bit(volatile void *data_ptr, int count)
+ {
+@@ -167,14 +162,14 @@
+ 	u32 tmplen = (count + 3) / 4;
+ 
+ 	for (i = 0; i < tmplen; i++)
+-		DM9000_outl(((u32 *) data_ptr)[i], dm9000_data_addr);
++		DM9000_outl(((u32 *) data_ptr)[i], DM9000_DATA);
+ }
+ 
+ static void dm9000_inblk_8bit(void *data_ptr, int count)
+ {
+ 	int i;
+ 	for (i = 0; i < count; i++)
+-		((u8 *) data_ptr)[i] = DM9000_inb(dm9000_data_addr);
++		((u8 *) data_ptr)[i] = DM9000_inb(DM9000_DATA);
+ }
+ 
+ static void dm9000_inblk_16bit(void *data_ptr, int count)
+@@ -183,7 +178,7 @@
+ 	u32 tmplen = (count + 1) / 2;
+ 
+ 	for (i = 0; i < tmplen; i++)
+-		((u16 *) data_ptr)[i] = DM9000_inw(dm9000_data_addr);
++		((u16 *) data_ptr)[i] = DM9000_inw(DM9000_DATA);
+ }
+ static void dm9000_inblk_32bit(void *data_ptr, int count)
+ {
+@@ -191,38 +186,38 @@
+ 	u32 tmplen = (count + 3) / 4;
+ 
+ 	for (i = 0; i < tmplen; i++)
+-		((u32 *) data_ptr)[i] = DM9000_inl(dm9000_data_addr);
++		((u32 *) data_ptr)[i] = DM9000_inl(DM9000_DATA);
+ }
+ 
+ static void dm9000_rx_status_32bit(u16 *RxStatus, u16 *RxLen)
+ {
+ 	u32 tmpdata;
+ 
+-	DM9000_outb(DM9000_MRCMD, dm9000_io_addr);
++	DM9000_outb(DM9000_MRCMD, DM9000_IO);
+ 
+-	tmpdata = DM9000_inl(dm9000_data_addr);
++	tmpdata = DM9000_inl(DM9000_DATA);
+ 	*RxStatus = __le16_to_cpu(tmpdata);
+ 	*RxLen = __le16_to_cpu(tmpdata >> 16);
+ }
+ 
+ static void dm9000_rx_status_16bit(u16 *RxStatus, u16 *RxLen)
+ {
+-	DM9000_outb(DM9000_MRCMD, dm9000_io_addr);
++	DM9000_outb(DM9000_MRCMD, DM9000_IO);
+ 
+-	*RxStatus = __le16_to_cpu(DM9000_inw(dm9000_data_addr));
+-	*RxLen = __le16_to_cpu(DM9000_inw(dm9000_data_addr));
++	*RxStatus = __le16_to_cpu(DM9000_inw(DM9000_DATA));
++	*RxLen = __le16_to_cpu(DM9000_inw(DM9000_DATA));
+ }
+ 
+ static void dm9000_rx_status_8bit(u16 *RxStatus, u16 *RxLen)
+ {
+-	DM9000_outb(DM9000_MRCMD, dm9000_io_addr);
++	DM9000_outb(DM9000_MRCMD, DM9000_IO);
+ 
+ 	*RxStatus =
+-	    __le16_to_cpu(DM9000_inb(dm9000_data_addr) +
+-			  (DM9000_inb(dm9000_data_addr) << 8));
++	    __le16_to_cpu(DM9000_inb(DM9000_DATA) +
++			  (DM9000_inb(DM9000_DATA) << 8));
+ 	*RxLen =
+-	    __le16_to_cpu(DM9000_inb(dm9000_data_addr) +
+-			  (DM9000_inb(dm9000_data_addr) << 8));
++	    __le16_to_cpu(DM9000_inb(DM9000_DATA) +
++			  (DM9000_inb(DM9000_DATA) << 8));
+ }
+ 
+ /*
+@@ -237,12 +232,12 @@
+ 	id_val |= DM9000_ior(DM9000_PIDL) << 16;
+ 	id_val |= DM9000_ior(DM9000_PIDH) << 24;
+ 	if (id_val == DM9000_ID) {
+-		printf("dm9000 i/o: 0x%x, id: 0x%x \n", dm9000_base_addr,
++		printf("dm9000 i/o: 0x%x, id: 0x%x \n", CONFIG_DM9000_BASE,
+ 		       id_val);
+ 		return 0;
+ 	} else {
+ 		printf("dm9000 not found at 0x%08x id: 0x%08x\n",
+-		       dm9000_base_addr, id_val);
++		       CONFIG_DM9000_BASE, id_val);
+ 		return -1;
+ 	}
+ }
+@@ -417,7 +412,7 @@
+ 	DM9000_iow(DM9000_ISR, IMR_PTM); /* Clear Tx bit in ISR */
+ 
+ 	/* Move data to DM9000 TX RAM */
+-	DM9000_outb(DM9000_MWCMD, dm9000_io_addr); /* Prepare for TX-data */
++	DM9000_outb(DM9000_MWCMD, DM9000_IO); /* Prepare for TX-data */
+ 
+ 	/* push the data to the TX-fifo */
+ 	(db->outblk)(packet, length);
+@@ -481,7 +476,7 @@
+ 
+ 		/* Get most updated data,
+ 		   only look at bits 0:1, See application notes DM9000 */
+-		rxbyte = DM9000_inb(dm9000_data_addr) & 0x03;
++		rxbyte = DM9000_inb(DM9000_DATA) & 0x03;
+ 
+ 		/* Status check: this byte must be 0 or 1 */
+ 		if (rxbyte > DM9000_PKT_RDY) {
+@@ -571,8 +566,8 @@
+ static u8
+ DM9000_ior(int reg)
+ {
+-	DM9000_outb(reg, dm9000_io_addr);
+-	return DM9000_inb(dm9000_data_addr);
++	DM9000_outb(reg, DM9000_IO);
++	return DM9000_inb(DM9000_DATA);
+ }
+ 
+ /*
+@@ -581,8 +576,8 @@
+ static void
+ DM9000_iow(int reg, u8 value)
+ {
+-	DM9000_outb(reg, dm9000_io_addr);
+-	DM9000_outb(value, dm9000_data_addr);
++	DM9000_outb(reg, DM9000_IO);
++	DM9000_outb(value, DM9000_DATA);
+ }
+ 
+ /*
+@@ -627,22 +622,6 @@
+ int dm9000_initialize(bd_t *bis)
+ {
+ 	struct eth_device *dev = &(dm9000_info.netdev);
+-	
+-if (getenv("dm9000_base")!= NULL)
+-{
+-   dm9000_base_addr=(simple_strtoul(getenv ("dm9000_base"), NULL, 16));
+-//   printf("\nDM9000_BASE=0x%x\n",(simple_strtoul(getenv ("dm9000_base"), NULL, 16)));
+-}
+-if (getenv("dm9000_data")!= NULL)
+-{
+-   dm9000_data_addr=(simple_strtoul (getenv ("dm9000_data"), NULL, 16));
+-//   printf("DM9000_DATA=0x%x\n",(simple_strtoul(getenv ("dm9000_data"), NULL, 16)));
+-}
+-if (getenv ("dm9000_io")!= NULL)
+-{
+-   dm9000_io_addr=(simple_strtoul (getenv ("dm9000_io"), NULL, 16));
+-//   printf("DM9000_IO=0x%x\n",(simple_strtoul(getenv ("dm9000_io"), NULL, 16)));
+-}
+ 
+ 	/* Load MAC address from EEPROM */
+ 	dm9000_get_enetaddr(dev);

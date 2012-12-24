@@ -1,0 +1,10 @@
+--- a/cpu/arm920t/s3c24x0/timer.c	2012-12-16 18:20:48.152898710 +0800
++++ b/cpu/arm920t/s3c24x0/timer.c	2012-12-16 18:21:16.116898724 +0800
+@@ -181,6 +181,7 @@
+ 	tbclk = timer_load_val * 100;
+ #elif defined(CONFIG_SBC2410X) || \
+       defined(CONFIG_SMDK2410) || \
++      defined(CONFIG_FS2410) || \
+       defined(CONFIG_VCMA9)
+ 	tbclk = CONFIG_SYS_HZ;
+ #else

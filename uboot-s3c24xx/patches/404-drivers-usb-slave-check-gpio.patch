@@ -1,0 +1,37 @@
+--- u-boot-2010.03/drivers/usb/slave/usbinit.c	2012-09-05 16:00:38.018691266 +0800
++++ u-boot-2010.03-24xx/drivers/usb/slave/usbinit.c	2012-09-05 15:06:15.706689762 +0800
+@@ -122,9 +122,31 @@
+ 
+ 	UsbdMain(); 
+ 	udelay(100000);
+-    
+-    writel((readl(&gpioregs->GPCDAT) | (1<<5)), &gpioregs->GPCDAT); 
+- /* enable USB Device, thisway.diy */
++	char *s = getenv ("machid");
++	int  mach_type=simple_strtoul (s, NULL, 10);
++#if 0
++printf("machid=%s\n",s);
++printf("machtype=%d\n",mach_type);
++printf ("return=%d\n",mach_type==2316?1:0);
++#endif
++
++if (mach_type==1999||mach_type==1998)
++{
++    writel((readl(&gpioregs->GPCDAT) | (1<<5)), &gpioregs->GPCDAT);
++    printf("Use GPC5 to enable USB slave!\n");
++}
++else if (mach_type==912||mach_type==2315||mach_type==2316)
++{
++    writel((readl(&gpioregs->GPGDAT) | (1<<9)), &gpioregs->GPGDAT);
++    printf("Use GPG9 to enable USB slave!\n");
++}
++else
++{
++      printf("Use GPC5 to enable USB slave for default!\n");
++      writel((readl(&gpioregs->GPCDAT) | (1<<5)), &gpioregs->GPCDAT);
++}
++ /* check machtype and do enable USB Device, thisway.diy */
++ 
+ #if USBDMA
+ 	mode="DMA";
+ #else
