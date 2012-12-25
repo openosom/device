@@ -1,0 +1,14 @@
+#
+# kernel: uImage -- load to --> 0x30008000 in SDRAM, not 0x32000000
+#
+--- a/hw/mini2440.c.orig	2012-12-25 13:14:40.357289005 +0800
++++ b/hw/mini2440.c	2012-12-25 13:15:11.773289019 +0800
+@@ -304,7 +304,7 @@
+ 	 * if a kernel was explicitly specified, we load it too
+ 	 */
+ 	if (s->kernel) {
+-	   	image_size = load_image(s->kernel, qemu_get_ram_ptr(0x02000000));
++	   	image_size = load_image(s->kernel, qemu_get_ram_ptr(0x00008000));
+ 	   	if (image_size > 0) {
+ 	   		if (image_size & (512 -1))	/* round size to a NAND block size */
+ 	   			image_size = (image_size + 512) & ~(512-1);
