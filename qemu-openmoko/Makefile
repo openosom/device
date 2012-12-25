@@ -7,27 +7,28 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=qemu-mini2440
-PKG_VERSION:=stable-20111013
+PKG_NAME:=qemu-openmoko
+PKG_REV:=6008
+PKG_VERSION:=$(PKG_REV)
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_SOURCE_SUBDIR)
-PKG_SOURCE_URL:=git://repo.or.cz/qemu/mini2440.git
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=18b91f222c2aebb2eb45cb7e6d5f58ca668e2aa2
+PKG_SOURCE_URL:=https://svn.openmoko.org/trunk/src/host/qemu-neo1973
+PKG_SOURCE_PROTO:=svn
+PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_TARGETS:=bin
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-  TITLE:=QEMU  Emulator for MINI2440
+  TITLE:=QEMU  Emulator for OpenMoko
   CATEGORY:=Device
   SUBMENU:=
   SECTION:=emulator
-  DEPENDS:=@TARGET_s3c24xx
-  URL:=http://wiki.qemu.org/
+  DEPENDS:=
+  URL:=http://wiki.qemu.org/ http://wiki.openmoko.org/wiki/Openmoko_under_QEMU
 endef
 
 define Package/$(PKG_NAME)/description
@@ -42,6 +43,7 @@ define Build/Configure
 	( cd $(PKG_BUILD_DIR)/ ; \
 		$(CONFIGURE_CMD) \
 		--target-list=arm-softmmu \
+		--disable-gcc-check \
 	)
 endef
 
@@ -53,8 +55,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR)	$(1)
 	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/{qemu-img,qemu-io,qemu-nbd}	$(1)/
 	$(INSTALL_BIN)  $(PKG_BUILD_DIR)/arm-softmmu/qemu-system-arm	$(1)/
-	$(CP)		./files/u-boot.bin				$(1)/
-	$(CP)		./files/run-mini2440-emulator.sh		$(BIN_DIR)/
+	$(CP)		./files/run-openmoko-emulator.sh		$(BIN_DIR)/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
