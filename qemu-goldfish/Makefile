@@ -66,8 +66,9 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)
-	$(CP) $(PKG_BUILD_DIR)/objs/emulator $(1)/
-	$(CP) ./skins $(1)/
+	$(CP) $(PKG_BUILD_DIR)/objs/emulator	$(1)/
+	$(CP) ./skins				$(1)/
+	$(CP) ./files/run-emulator.sh			$(BIN_DIR)/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
