@@ -50,7 +50,7 @@ define Build/Compile
 endef
 
 define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR)	$(1)
+	$(INSTALL_DIR)	$(1) $(BIN_DIR)
 	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/{qemu-img,qemu-io,qemu-nbd}	$(1)/
 	$(INSTALL_BIN)  $(PKG_BUILD_DIR)/arm-softmmu/qemu-system-arm	$(1)/
 	$(CP)		./files/u-boot.bin				$(1)/

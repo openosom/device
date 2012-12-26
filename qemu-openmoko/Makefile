@@ -52,10 +52,13 @@ define Build/Compile
 endef
 
 define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR)	$(1)
-	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/{qemu-img,qemu-io,qemu-nbd}	$(1)/
-	$(INSTALL_BIN)  $(PKG_BUILD_DIR)/arm-softmmu/qemu-system-arm	$(1)/
-	$(CP)		./files/run-openmoko-emulator.sh		$(BIN_DIR)/
+	$(INSTALL_DIR)	$(BIN_DIR) \
+		$(1) \
+		$(1)/arm-softmmu
+	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/qemu-img                       $(1)/
+	$(INSTALL_BIN)  $(PKG_BUILD_DIR)/arm-softmmu/qemu-system-arm    $(1)/arm-softmmu/
+	$(CP)           $(PKG_BUILD_DIR)/openmoko                       $(1)/
+#	$(CP)		./files/run-openmoko-emulator.sh		$(BIN_DIR)/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
