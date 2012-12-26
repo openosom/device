@@ -55,10 +55,14 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR)	$(BIN_DIR) \
 		$(1) \
 		$(1)/arm-softmmu
-	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/qemu-img                       $(1)/
+
 	$(INSTALL_BIN)  $(PKG_BUILD_DIR)/arm-softmmu/qemu-system-arm    $(1)/arm-softmmu/
+	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/{qemu-img,dyngen}              $(1)/
+	$(CP)           $(PKG_BUILD_DIR)/flash2raw*                     $(1)/
+	$(CP)           $(PKG_BUILD_DIR)/raw2flash*                     $(1)/
 	$(CP)           $(PKG_BUILD_DIR)/openmoko                       $(1)/
-#	$(CP)		./files/run-openmoko-emulator.sh		$(BIN_DIR)/
+	$(CP)           ./files/env-gta01                               $(1)/openmoko/env
+	$(CP)		./files/run-openmoko-emulator.sh                $(1)/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
