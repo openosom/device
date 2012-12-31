@@ -53,7 +53,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR)	$(1) $(BIN_DIR)
 	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/{qemu-img,qemu-io,qemu-nbd}	$(1)/
 	$(INSTALL_BIN)  $(PKG_BUILD_DIR)/arm-softmmu/qemu-system-arm	$(1)/
-	$(CP)		./files/u-boot.bin				$(1)/
+	$(CP)           ./files/mini2440                                $(1)/
 	$(CP)		./files/run-mini2440-emulator.sh		$(BIN_DIR)/
 endef
 
