@@ -128,6 +128,11 @@ q
 nand write $kernel_addr $rootfs_prt_addr $rootfs_size"
 
 echo
+echo "    "
+echo "    "
+echo "    ================================================"
+echo "    "
+echo "    "
 echo "    "All done.
 echo
 echo "    "Read the qemu manual and use a commandline like the following to boot:
@@ -136,4 +141,7 @@ echo
 echo "    "Append \'-snapshot\' to make the flash image read-only so that every
 echo "    "time emulation starts in the original unmodified state.
 echo "    "Append \'-usbdevice keyboard\' to attach a standard keyboard.
+echo "    "
+echo "    "
+echo "    ================================================"
 echo "    "
