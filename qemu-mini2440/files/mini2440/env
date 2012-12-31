@@ -1,0 +1,31 @@
+# The scripts will include this on startup to setup variables
+
+base_dir="$(dirname $0)"
+script_dir="$base_dir"
+
+flash_base="nand-flash-128mb.base"
+flash_image="nand-flash-128mb.image"
+
+dump_dir="$script_dir/vvfat"
+
+qemu_relative="qemu-system-arm -M mini2440"
+qemu="$base_dir/../$qemu_relative"
+
+qemu_monitor="$HOME/.qemu_monitor"
+qemu_cmd () { $script_dir/qemu-cmd.pl "$qemu_monitor" "$*"; }
+
+# -kernel <kernel.bin>, default load to 0x30008000 address in RAM.
+kernel_addr=0x30008000
+
+# partition in nand
+uboot_prt_addr=0x0000
+kernel_prt_addr=0x80000
+rootfs_prt_addr=0x580000
+
+
+# We don't want the "-latest" symlinks to match
+kernel_wildcard="openwrt-s3c24xx-*-uImage"
+rootfs_wildcard="openwrt-s3c24xx-*-squashfs.img"
+uboot_wildcard="uboot-s3c24xx.bin"
+uboot_symlink="$base_dir/u-boot.bin"
+kernel_symlink="$base_dir/mini2440-kernel.bin"
