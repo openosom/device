@@ -1,0 +1,14 @@
+#
+# uboot-s3c24xx.bin larger than 256KB.
+#
+--- a/hw/mini2440.c.orig	2013-01-01 01:45:27.356432198 +0800
++++ b/hw/mini2440.c	2013-01-01 01:46:12.992432183 +0800
+@@ -274,7 +274,7 @@
+ 		 * it is not working perfectly as expected, so we cheat and load
+ 		 * it from nand directly relocated to 0x33f80000 and jump there
+ 		 */
+-		if (mini2440_load_from_nand(s->nand, 0, S3C_RAM_BASE | 0x03f80000, 256*1024)> 0) {
++		if (mini2440_load_from_nand(s->nand, 0, S3C_RAM_BASE | 0x03f80000, 512*1024)> 0) {
+ 			mini2440_printf("loaded default u-boot from NAND\n");
+ 			s->cpu->env->regs[15] = S3C_RAM_BASE | 0x03f80000; /* start address, u-boot already relocated */
+ 		}
