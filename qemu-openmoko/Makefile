@@ -62,7 +62,7 @@ define Package/$(PKG_NAME)/install
 	$(CP)           $(PKG_BUILD_DIR)/raw2flash*                     $(1)/
 	$(CP)           $(PKG_BUILD_DIR)/openmoko                       $(1)/
 	$(CP)           ./files/env-gta01                               $(1)/openmoko/env
-	$(CP)		./files/run-openmoko-emulator.sh                $(1)/
+	$(CP)		./files/run-gta01-emulator.sh                   $(BIN_DIR)/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))

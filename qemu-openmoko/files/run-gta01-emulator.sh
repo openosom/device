@@ -2,8 +2,10 @@
 #
 
 BASE=$(dirname $0)
-QEMU_DIR=$BASE
-SCRIPTS_DIR=$QEMU_DIR/openmoko
+QEMU_DIR=$BASE/qemu-openmoko
+SCRIPTS_DIR=openmoko
+
+cd $QEMU_DIR
 
 #1 setup environment
 . $SCRIPTS_DIR/env
