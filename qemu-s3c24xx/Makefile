@@ -61,6 +61,13 @@ define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR)
 endef
 
+# TARGETID and SUBTARGET define in TOPDIR/include/target.mk. 
+# but target.mk/kernel.mk cannot be used here, because of not cross compiling.
+target_conf=$(subst .,_,$(subst -,_,$(subst /,_,$(1))))
+PLATFORM_DIR:=$(TOPDIR)/target/linux/$(BOARD)
+SUBTARGET:=$(strip $(foreach subdir,$(patsubst $(PLATFORM_DIR)/%/target.mk,%,$(wildcard $(PLATFORM_DIR)/*/target.mk)),$(if $(CONFIG_TARGET_$(call target_conf,$(BOARD)_$(subdir))),$(subdir))))
+TARGETID:=$(BOARD)$(if $(SUBTARGET),/$(SUBTARGET))
+
 SOC_CONF:=
 ifeq ($(CONFIG_QEMU_DEFAULT_SOC_TYPE),y)
 ifeq ($(findstring 2410,$(TARGETID)),2410)
@@ -80,10 +87,13 @@ ifeq ($(CONFIG_QEMU_S3C2440_SOC_TYPE),y)
 endif
 
 define Package/$(PKG_NAME)/install
+	echo "#TARGETID: $(TARGETID)"
+	echo "#SOC_TYPE: $(SOC_CONF)"
+
 	$(INSTALL_DIR)	$(1) $(BIN_DIR)
 	$(INSTALL_BIN)	$(PKG_BUILD_DIR)/{qemu-img,qemu-io,qemu-nbd}	$(1)/
 	$(INSTALL_BIN)  $(PKG_BUILD_DIR)/arm-softmmu/qemu-system-arm	$(1)/
-	$(CP)           ./files/$(SOC_CONF)                             $(1)/
+	$(CP)           ./files/$(SOC_CONF)/                            $(1)/
 	$(CP)		./files/run-$(SOC_CONF)-emulator.sh             $(BIN_DIR)/
 endef
 
