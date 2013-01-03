@@ -1,0 +1,19 @@
+
+if PACKAGE_qemu-s3c24xx
+
+choice
+	prompt "soc type"
+	default QEMU_DEFAULT_SOC_TYPE
+
+	config QEMU_DEFAULT_SOC_TYPE
+		bool "default"
+
+	config QEMU_S3C2410_SOC_TYPE
+		bool "s3c2410"
+
+	config QEMU_S3C2440_SOC_TYPE
+		bool "s3c2440"
+
+endchoice
+
+endif
