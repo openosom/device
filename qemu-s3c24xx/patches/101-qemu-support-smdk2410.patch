@@ -1,0 +1,32 @@
+--- a/Makefile.target
++++ b/Makefile.target
+@@ -656,6 +656,7 @@ OBJS+= framebuffer.o
+ OBJS+= s3c2410.o s3c2440.o s3c24xx_gpio.o s3c24xx_lcd.o s3c24xx_mmci.o s3c24xx_rtc.o s3c24xx_udc.o s3c2410_nand.o s3c2440_nand.o  
+ OBJS+= dm9000.o eeprom24c0x.o
+ OBJS+= smdk2440.o
++OBJS+= smdk2410.o
+ OBJS+= mini2440.o
+ OBJS+= syborg.o syborg_fb.o syborg_interrupt.o syborg_keyboard.o
+ OBJS+= syborg_serial.o syborg_timer.o syborg_pointer.o syborg_rtc.o
+--- a/hw/boards.h
++++ b/hw/boards.h
+@@ -134,6 +134,9 @@ extern QEMUMachine mini2440_machine;
+ /* smdk2440.c */
+ extern QEMUMachine smdk2440_machine;
+ 
++/* smdk2410.c */
++extern QEMUMachine smdk2410_machine;
++
+ /* syborg.c */
+ extern QEMUMachine syborg_machine;
+ 
+--- a/target-arm/machine.c
++++ b/target-arm/machine.c
+@@ -25,6 +25,7 @@ void register_machines(void)
+     qemu_register_machine(&tosapda_machine);
+     qemu_register_machine(&mini2440_machine);
+     qemu_register_machine(&smdk2440_machine);
++    qemu_register_machine(&smdk2410_machine);
+     qemu_register_machine(&syborg_machine);
+ }
+ 
