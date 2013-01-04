@@ -351,23 +351,23 @@ smdk2410_init(
     /*
      * Use an environment variable to set the boot mode "switch"
      */
-    const char * boot_mode = getenv("SMDK2410_BOOT");
+    const char * boot_mode = getenv("S3C24XX_BOOT");
 
     if (boot_mode) {
     	if (!strcasecmp(boot_mode, "nor")) {
     		if (nor_idx < 0) {
-    			printf("%s SMDK2410_BOOT(nor) error, no flash file specified", __func__);
+    			printf("%s S3C24XX_BOOT(nor) error, no flash file specified", __func__);
     			abort();
     		} else
     		    mini->boot_mode = BOOT_NOR;
     	} else if (!strcasecmp(boot_mode, "nand")) {
     		if (nor_idx < 0) {
-    			printf("%s SMDK2410_BOOT(nand) error, no flash file specified", __func__);
+    			printf("%s S3C24XX_BOOT(nand) error, no flash file specified", __func__);
     			abort();
     		} else
     		    mini->boot_mode = BOOT_NOR;
     	} else
-			printf("%s SMDK2410_BOOT(%s) ignored, invalid value", __func__, boot_mode);
+			printf("%s S3C24XX_BOOT(%s) ignored, invalid value", __func__, boot_mode);
     }
     printf("%s: Boot mode: %s\n", __func__, mini->boot_mode == BOOT_NOR ? "NOR": "NAND");
     /* Check the boot mode */
