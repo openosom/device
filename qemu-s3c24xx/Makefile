@@ -30,7 +30,7 @@ define Package/$(PKG_NAME)
   CATEGORY:=Device
   SUBMENU:=
   SECTION:=emulator
-  DEPENDS:=@TARGET_s3c24xx
+  DEPENDS:=@TARGET_s3c24xx +uboot-s3c24xx
   URL:=http://wiki.qemu.org/
   MAINTAINER:=Richard Nee <openme@openwrt.org.cn>
 endef

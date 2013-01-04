@@ -96,7 +96,7 @@ uboot () {
 	cd $script_dir
 }
 
-# Set up MACHID =1999, for mini2440.
+# Set up MACHID =1999
 uboot $uboot_image 5 "
 
 o1999
