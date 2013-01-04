@@ -1,6 +1,9 @@
 #
 # s3c2442
 #
+# QEMU for glofiish		: http://gnufiish.org/trac/wiki/Qemu
+# 	qemu_glofiish.diff	: http://gnufiish.org/trac/attachment/wiki/Qemu/qemu_glofiish.diff
+#
 diff --git a/Makefile.target b/Makefile.target
 index 50dc60a..bde8b0c 100644
 --- a/Makefile.target
