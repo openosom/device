@@ -96,10 +96,10 @@ uboot () {
 	cd $script_dir
 }
 
-# Set up MACHID =1999
+# Set up MACHID =193
 uboot $uboot_image 5 "
 
-o1999
+o193
 s
 q"
 
@@ -109,7 +109,7 @@ uboot $uboot_image 10 "
 
 q
 nand write $kernel_addr $uboot_prt_addr $uboot_size
-setenv machid 1999
+setenv machid 193
 setenv bootcmd bootm
 saveenv
 print"
