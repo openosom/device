@@ -1,5 +1,8 @@
 /*
- * smdk2440 development board support
+ * smdk2440 development board, support almost s3c2440 soc.
+ *
+ * Copyright (c) 2013 OpenWrt.org.cn
+ * Author: Richard Nee   <openme@openwrt.org.cn>
  *
  * This code is licensed under the GNU GPL v2.
  */
