@@ -439,7 +439,7 @@ smdk2440_init(
 
 QEMUMachine smdk2440_machine = {
     "smdk2440",
-    "Samsung SOC Dev-Board (S3C2440A)",
+    "Samsung SOC Dev-Boards (S3C2440A)",
     .init = smdk2440_init,
 };
 

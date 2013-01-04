@@ -1,7 +1,7 @@
 --- a/Makefile.target
 +++ b/Makefile.target
 @@ -656,6 +656,7 @@ OBJS+= framebuffer.o
- OBJS+= s3c2410.o s3c2440.o s3c24xx_gpio.o s3c24xx_lcd.o s3c24xx_mmci.o s3c24xx_rtc.o s3c24xx_udc.o s3c2410_nand.o s3c2440_nand.o  
+ OBJS+= s3c2410.o s3c24xx_gpio.o s3c24xx_lcd.o s3c24xx_mmci.o s3c24xx_rtc.o s3c24xx_udc.o s3c2410_nand.o s3c2440_nand.o  
  OBJS+= dm9000.o eeprom24c0x.o
  OBJS+= smdk2440.o
 +OBJS+= smdk2410.o
