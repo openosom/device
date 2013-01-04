@@ -29,12 +29,12 @@
 #define SMDK2410_GPIO_BACKLIGHT		S3C_GPG(4)
 #define SMDK2410_GPIO_LCD_RESET		S3C_GPC(6)
 #define SMDK2410_GPIO_nSD_DETECT	S3C_GPG(8)
-#define SMDK2410_GPIO_WP_SD			S3C_GPH(8)
+#define SMDK2410_GPIO_WP_SD		S3C_GPH(8)
 #define SMDK2410_GPIO_DM9000		S3C_GPF(7)
 #define SMDK2410_GPIO_USB_PULLUP	S3C_GPC(5)
 
 #define SMDK2410_IRQ_nSD_DETECT		S3C_EINT(16)
-#define SMDK2410_IRQ_DM9000			S3C_EINT(7)
+#define SMDK2410_IRQ_DM9000		S3C_EINT(7)
 
 #define FLASH_NOR_SIZE (2*1024*1024)
 
@@ -290,9 +290,7 @@ static void smdk2410_reset(void *opaque)
 		 * if a u--boot is available as a file, we always use it
 		 */
 		{
-			image_size = load_image("smdk2410/u-boot.bin", qemu_get_ram_ptr(0x03f80000));
-			if (image_size < 0)
-				image_size = load_image("u-boot.bin", qemu_get_ram_ptr(0x03f80000));
+			image_size = load_image("u-boot.bin", qemu_get_ram_ptr(0x03f80000));
 			if (image_size > 0) {
 				if (image_size & (512 -1))	/* round size to a NAND block size */
 					image_size = (image_size + 512) & ~(512-1);

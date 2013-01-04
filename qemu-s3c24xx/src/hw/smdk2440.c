@@ -290,9 +290,7 @@ static void smdk2440_reset(void *opaque)
 		 * if a u--boot is available as a file, we always use it
 		 */
 		{
-			image_size = load_image("smdk2440/u-boot.bin", qemu_get_ram_ptr(0x03f80000));
-			if (image_size < 0)
-				image_size = load_image("u-boot.bin", qemu_get_ram_ptr(0x03f80000));
+			image_size = load_image("u-boot.bin", qemu_get_ram_ptr(0x03f80000));
 			if (image_size > 0) {
 				if (image_size & (512 -1))	/* round size to a NAND block size */
 					image_size = (image_size + 512) & ~(512-1);
