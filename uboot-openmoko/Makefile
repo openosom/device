@@ -27,7 +27,7 @@ define Package/$(PKG_NAME)
   CATEGORY:=Device
   SUBMENU:=
   SECTION:=boot
-  DEPENDS:=
+  DEPENDS:=@TARGET_openmoko
   URL:=http://www.denx.de/wiki/U-Boot http://wiki.openmoko.org/wiki/U-Boot
   MAINTAINER:=richard.nee.cn <openme@openwrt.org.cn>
 endef
@@ -48,6 +48,10 @@ define Build/Prepare
 	$(FIND) $(PKG_BUILD_DIR) -name .svn | $(XARGS) rm -rf
 endef
 
+# QEMU support for GTA01
+# while Kernel support for GTA02
+# UBOOT support for GTA01 and GTA02.
+#     for GTA01:  $(MAKE) -C $(PKG_BUILD_DIR) gta01v4_config
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) gta02v5_config
 	$(MAKE) -C $(PKG_BUILD_DIR) CROSS_COMPILE=$(TARGET_CROSS) u-boot.udfu
