@@ -1,0 +1,10 @@
+--- a/Makefile.target	2013-01-06 13:46:14.962960840 +0800
++++ b/Makefile.target	2013-01-06 13:47:12.742960868 +0800
+@@ -517,6 +517,7 @@
+ VL_OBJS+= pflash_cfi01.o gumstix.o
+ VL_OBJS+= spitz.o ide.o serial.o nand.o ecc.o
+ VL_OBJS+= s3c2410.o s3c24xx_gpio.o s3c24xx_lcd.o s3c24xx_mmci.o s3c24xx_rtc.o
++VL_OBJS+= s3c2410_nand.o s3c2440_nand.o
+ VL_OBJS+= s3c24xx_udc.o
+ VL_OBJS+= neo1973.o jbt6k74.o gps.o $(GSM_OBJS) modem.o
+ VL_OBJS+= omap.o omap_lcdc.o omap1_clk.o omap_mmc.o omap_i2c.o
