@@ -23,7 +23,7 @@ PKG_TARGETS:=bin
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-  TITLE:=QEMU Emulator for OpenMoko(GTA01/GTA02)
+  TITLE:=QEMU Emulator for OpenMoko(GTA01)
   CATEGORY:=Device
   SUBMENU:=
   SECTION:=emulator
@@ -35,13 +35,6 @@ define Package/$(PKG_NAME)/description
   mini2440 QEMU    : git://repo.or.cz/qemu/mini2440.git
   openmoko QEMU    : https://svn.openmoko.org/trunk/src/host/qemu-neo1973
   goldfish QEME    : https://android.googlesource.com/platform/external/qemu.git
-endef
-
-define Build/Prepare
-	$(PKG_UNPACK)
-	$(CP) $(CP_OPTS) ./src/* $(PKG_BUILD_DIR)/
-	$(Build/Patch)
-	$(FIND) $(PKG_BUILD_DIR) -name .svn | $(XARGS) rm -rf
 endef
 
 define Build/Configure

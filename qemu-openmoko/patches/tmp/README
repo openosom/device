@@ -1,0 +1,16 @@
+原始的openmoko QEMU， UBOOT：
+
+1 qemu-openmoko目前只支持s3c2410的gta01，而不支持s3c2442的gta02
+	在QEMU openmoko主页已经指明了，要模拟gta02则必须使用gta01的uboot，
+	使用通用的内核（支持gta01，同时包含gta02独有的外设，有专门的补丁）
+
+2 uboot-openmoko编译成gta01时，qemu可以启动，虽然和下载好的已编译的uboot有所区别
+	但是编译成gta02时，出现s3c_nand_read: Bad register 0x20错误
+	主要是因为s3c2442和s3c2440在nand寄存器上有很大区别
+
+3 最初的openwrt kernel-openmoko只支持gta02
+
+改进方案：（放弃，改为采用添加openwrt支持gta01）
+	1 参考qemu-mini2440，修改qemu-openmoko使支持gta02
+	2 从而构成GTA02整个体系：QEMU --> UBOOT --> Linux
+	3 而GTA01则可以通过原始的脚本从网上下载uboot和linux内核
