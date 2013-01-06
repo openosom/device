@@ -23,7 +23,7 @@ PKG_SOURCE_VERSION:=4ed6f14590c443f20c12b2f39ec0c14f0c41c0f8
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-  TITLE:=for OpenMoko(GTA02)
+  TITLE:=Uboot for OpenMoko(GTA01/GTA02)
   CATEGORY:=Device
   SUBMENU:=
   SECTION:=boot
@@ -52,14 +52,26 @@ endef
 # while Kernel support for GTA02
 # UBOOT support for GTA01 and GTA02.
 #     for GTA01:  $(MAKE) -C $(PKG_BUILD_DIR) gta01v4_config
+#     for GTA02:  $(MAKE) -C $(PKG_BUILD_DIR) gta02v6_config
+
+# default
+OPENMOKO_CONF:=gta01v4_config
+
+ifneq ($(CONFIG_TARGET_openmoko_openmoko_gta01),)
+  OPENMOKO_CONF:=gta01v4_config
+else
+  OPENMOKO_CONF:=gta02v6_config
+endif
+
 define Build/Compile
-	$(MAKE) -C $(PKG_BUILD_DIR) gta02v5_config
+	echo "OPENMOKO_CONF: $(OPENMOKO_CONF)"
+	$(MAKE) -C $(PKG_BUILD_DIR) $(OPENMOKO_CONF)
 	$(MAKE) -C $(PKG_BUILD_DIR) CROSS_COMPILE=$(TARGET_CROSS) u-boot.udfu
 endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(BIN_DIR)
-	dd if=$(PKG_BUILD_DIR)/u-boot.bin of=$(BIN_DIR)/$(PKG_NAME).bin bs=128k conv=sync
+	$(CP) $(PKG_BUILD_DIR)/u-boot.bin $(BIN_DIR)/$(PKG_NAME).bin
 endef
 
 
