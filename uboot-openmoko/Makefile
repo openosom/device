@@ -51,14 +51,14 @@ endef
 # QEMU support for GTA01
 # while Kernel support for GTA02
 # UBOOT support for GTA01 and GTA02.
-#     for GTA01:  $(MAKE) -C $(PKG_BUILD_DIR) gta01v4_config
+#     for GTA01:  $(MAKE) -C $(PKG_BUILD_DIR) gta01bv4_config
 #     for GTA02:  $(MAKE) -C $(PKG_BUILD_DIR) gta02v6_config
 
 # default
-OPENMOKO_CONF:=gta01v4_config
+OPENMOKO_CONF:=gta01bv4_config
 
 ifneq ($(CONFIG_TARGET_openmoko_openmoko_gta01),)
-  OPENMOKO_CONF:=gta01v4_config
+  OPENMOKO_CONF:=gta01bv4_config
 else
   OPENMOKO_CONF:=gta02v6_config
 endif
