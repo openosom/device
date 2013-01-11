@@ -71,7 +71,7 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(BIN_DIR)
-	$(CP) $(PKG_BUILD_DIR)/u-boot.bin $(BIN_DIR)/$(PKG_NAME).bin
+	$(CP) $(PKG_BUILD_DIR)/u-boot.bin $(BIN_DIR)/u-boot-openmoko.bin
 endef
 
 

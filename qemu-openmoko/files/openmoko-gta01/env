@@ -25,5 +25,5 @@ splash_size=0x5000
 # We don't want the "-latest" symlinks to match
 kernel_wildcard="openwrt-openmoko-*-uImage"
 rootfs_wildcard="openwrt-openmoko-*.squashfs"
-uboot_wildcard="u-boot-gta01*.bin"
+uboot_wildcard="u-boot-openmoko.bin"
 
