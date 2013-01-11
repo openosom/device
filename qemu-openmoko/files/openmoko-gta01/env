@@ -1,0 +1,29 @@
+# The scripts will include this on startup to setup variables
+
+src_dir="`pwd`"
+script_dir_relative=openmoko-gta01
+script_dir="$src_dir/$script_dir_relative"
+uboot_symlink="$src_dir/u-boot.bin"
+qemu_relative="arm-softmmu/qemu-system-arm -M gta01 -m 130"
+qemu="$src_dir/$qemu_relative"
+flash_base=openmoko-flash.base
+flash_image=openmoko-flash.image
+make=make
+which gmake && make=gmake
+echo=echo
+which gecho && echo=gecho
+export make echo
+dump_dir="$script_dir/vvfat"
+
+qemu_monitor="$HOME/.qemu_monitor"
+qemu_cmd () { $script_dir/qemu-cmd.pl "$qemu_monitor" "$*"; }
+
+kernel_addr=0x30100000
+splash_addr=0x36000000
+splash_size=0x5000
+
+# We don't want the "-latest" symlinks to match
+kernel_wildcard="openwrt-openmoko-*-uImage"
+rootfs_wildcard="openwrt-openmoko-*.squashfs"
+uboot_wildcard="u-boot-gta01*.bin"
+

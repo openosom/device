@@ -59,7 +59,10 @@ define Package/$(PKG_NAME)/install
 	$(CP)           $(PKG_BUILD_DIR)/flash2raw                      $(1)/
 	$(CP)           $(PKG_BUILD_DIR)/raw2flash                      $(1)/
 	$(CP)           $(PKG_BUILD_DIR)/openmoko                       $(1)/
-	$(CP)           ./files/env-gta01                               $(1)/openmoko/env
+	$(CP)           ./files/env-gta01-om                            $(1)/openmoko/env
+	$(CP)           ./files/run-gta01-om-emulator.sh                $(BIN_DIR)/
+
+	$(CP)           ./files/openmoko-gta01                          $(1)/
 	$(CP)		./files/run-gta01-emulator.sh                   $(BIN_DIR)/
 endef
 
