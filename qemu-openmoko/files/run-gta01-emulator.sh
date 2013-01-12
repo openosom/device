@@ -2,8 +2,8 @@
 #
 
 BASE=$(dirname $0)
-QEMU_DIR=$BASE/qemu-openmoko
-SCRIPTS_DIR=openmoko-gta01
+QEMU_DIR=$BASE/qemu-openmoko/openmoko-gta01
+SCRIPTS_DIR=.
 
 cd $QEMU_DIR
 
@@ -18,7 +18,7 @@ cd $QEMU_DIR
 #	u-boot environment and some default kernel parameters. 
 # If everything goes OK, the script should print a command which you can use to start using the emulator.
 if [ ! -e $SCRIPTS_DIR/$flash_base -o ! -e $SCRIPTS_DIR/$flash_image ]; then
-	$SCRIPTS_DIR/flash.sh ..
+	$SCRIPTS_DIR/flash.sh ../..
 fi
 
 #3 launches qemu and opens a unix socket for communication. All additional parameters are passed to qemu.

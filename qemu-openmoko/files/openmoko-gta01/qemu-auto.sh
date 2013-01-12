@@ -20,7 +20,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-. openmoko-gta01/env
+. ./env
 
 if [ -e "$qemu_monitor" ]; then
 	echo A QEMU session appears to be already active

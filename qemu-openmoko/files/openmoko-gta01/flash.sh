@@ -21,7 +21,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-. openmoko-gta01/env
+. ./env
 
 if [[ "$1" != "" ]]; then
 	img_dir="`(cd \"$1\"; pwd)`"
