@@ -103,7 +103,7 @@ neo1973 power-off
 uboot $uboot_image 300 "
 setenv dontask y
 nand createbbt
-setenv bootargs_base 'root=/dev/mtdblock4 console=ttySAC0,115200'
+setenv bootargs_base 'rootfstype=squashfs,jffs2,ext2 root=/dev/mtdblock4 console=ttySAC0,115200 console=tty0'
 setenv bootcmd 'setenv bootargs \${bootargs_base} \${mtdparts}; bootm $kernel_addr'
 setenv menu_1 'Set console to USB: setenv stdin usbtty; setenv stdout usbtty; setenv stderr usbtty'
 setenv menu_2 'Set console to serial: setenv stdin serial; setenv stdout serial; setenv stderr serial'

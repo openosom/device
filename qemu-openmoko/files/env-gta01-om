@@ -18,7 +18,7 @@ dump_dir="$script_dir/vvfat"
 qemu_monitor="$HOME/.qemu_monitor"
 qemu_cmd () { $script_dir/qemu-cmd.pl "$qemu_monitor" "$*"; }
 
-kernel_addr=0x30100000
+kernel_addr=0x30400000
 splash_addr=0x36000000
 splash_size=0x5000
 

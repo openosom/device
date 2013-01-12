@@ -1,0 +1,27 @@
+# Change the default kernel_load_address at 0x30400000(4MB) in ram,
+#     then left the image_space larger for kernel image where Uboot bootm from.
+#     but the largest size of loading, such as rootfs loading and writing into nand,
+#     become little (64MB -4MB, or 128MB -4MB, depend on SDRAM size).
+#
+#  image_start  image_end   load_start   load_end
+# |-0x3000800 - image_end-|-0x30100000 - load_end-|
+#
+# 0x30008000 - 0x30100000 < 1MB for kernel image, it too little!
+# it may cause "ERROR: image overwritten - must RESET the board to recover" when U-boot BOOTM,
+# because of (load_start < image_end) && (load_end > image_start) !
+# SUCH AS:(bootm)
+#	image_start = 0x30100000, image_end = 0x30246674
+#	load_start = 0x30008000, load_end = 0x3014e634
+#	ERROR: image overwritten - must RESET the board to recover.
+#
+--- a/hw/neo1973.c	2008-06-09 10:10:18.000000000 +0800
++++ b/hw/neo1973.c	2013-01-12 09:47:22.924651883 +0800
+@@ -719,7 +719,7 @@
+     s->cpu->env->regs[15] = S3C_SRAM_BASE;
+ #else
+     load_image("u-boot.bin", phys_ram_base + 0x03f80000);
+-    load_image(s->kernel, phys_ram_base + 0x00100000);
++    load_image(s->kernel, phys_ram_base + 0x00400000);
+ 
+     s->cpu->env->regs[15] = S3C_RAM_BASE | 0x03f80000;
+ 
