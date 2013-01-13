@@ -1,0 +1,64 @@
+--- u-boot-2011.06-for-tiny210/arch/arm/cpu/armv7/s5p-common/timer.c	2012-03-04 23:28:30.000000000 +0800
++++ u-boot-mini210-tiny210/arch/arm/cpu/armv7/s5p-common/timer.c	2012-12-02 14:01:21.000000000 +0800
+@@ -55,6 +55,22 @@
+ 	return get_timer_masked() - base;
+ }
+ 
++unsigned long get_timer_ticks(void)
++{
++        struct s5p_timer *const timer = s5p_get_base_timer();
++        unsigned long now = readl(&timer->tcnto4);
++        unsigned long count_value = readl(&timer->tcntb4);
++
++        if (gd->lastinc >= now)
++                gd->tbl += gd->lastinc - now;
++        else
++                gd->tbl += gd->lastinc + count_value - now;
++
++        gd->lastinc = now;
++
++        return gd->tbl;
++}
++
+ /* delay x useconds */
+ void __udelay(unsigned long usec)
+ {
+@@ -81,7 +97,7 @@
+ 	}
+ 
+ 	/* get current timestamp */
+-	tmp = get_timer(0);
++	tmp = get_timer_ticks();
+ 
+ 	/* if setting this fordward will roll time stamp */
+ 	/* reset "advancing" timestamp to 0, set lastinc value */
+@@ -92,7 +108,7 @@
+ 		tmo += tmp;
+ 
+ 	/* loop till event */
+-	while (get_timer_masked() < tmo)
++	while (get_timer_ticks() < tmo)
+ 		;	/* nop */
+ }
+ 
+@@ -108,17 +124,10 @@
+ unsigned long get_timer_masked(void)
+ {
+ 	struct s5p_timer *const timer = s5p_get_base_timer();
+-	unsigned long now = readl(&timer->tcnto4);
+-	unsigned long count_value = readl(&timer->tcntb4);
+-
+-	if (gd->lastinc >= now)
+-		gd->tbl += gd->lastinc - now;
+-	else
+-		gd->tbl += gd->lastinc + count_value - now;
+-
+-	gd->lastinc = now;
++	unsigned long timer_clk = get_pwm_clk() /
++		(((readl(&timer->tcfg0) >> 8) & 0xff) + 1) / (((readl(&timer->tcfg1) >> 16) & 0xf) + 1);
+ 
+-	return gd->tbl;
++	return get_timer_ticks() / (timer_clk / CONFIG_SYS_HZ);
+ }
+ 
+ /*

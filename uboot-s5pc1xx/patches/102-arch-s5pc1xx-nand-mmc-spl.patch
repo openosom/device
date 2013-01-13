@@ -1,0 +1,13 @@
+--- u-boot-linaro-stable-2011.10/arch/arm/cpu/armv7/s5pc1xx/Makefile	2011-10-24 14:31:53.000000000 +0800
++++ my-u-boot-2011.06-for-tiny210/arch/arm/cpu/armv7/s5pc1xx/Makefile	2012-04-11 13:20:13.671003337 +0800
+@@ -32,6 +32,10 @@
+ SOBJS	+= reset.o
+ 
+ COBJS	+= clock.o
++ifdef CONFIG_SPL_BUILD
++COBJS  += mmc_boot.o
++COBJS  += nand_cp.o
++endif
+ 
+ SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
+ OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))

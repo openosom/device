@@ -1,0 +1,28 @@
+diff -Nur u-boot-linaro-stable-2011.10/drivers/mtd/nand/Makefile my-u-boot-2011.06-for-tiny210/drivers/mtd/nand/Makefile
+--- u-boot-linaro-stable-2011.10/drivers/mtd/nand/Makefile	2011-10-24 14:31:53.000000000 +0800
++++ my-u-boot-2011.06-for-tiny210/drivers/mtd/nand/Makefile	2012-04-11 14:17:05.351004911 +0800
+@@ -32,6 +32,7 @@
+ COBJS-y += nand_ecc.o
+ COBJS-y += nand_ids.o
+ COBJS-y += nand_util.o
++COBJS-y += s5pc1xx_nand.o
+ 
+ COBJS-$(CONFIG_NAND_ATMEL) += atmel_nand.o
+ COBJS-$(CONFIG_DRIVER_NAND_BFIN) += bfin_nand.o
+diff -Nur u-boot-linaro-stable-2011.10/drivers/mtd/nand/nand.c my-u-boot-2011.06-for-tiny210/drivers/mtd/nand/nand.c
+--- u-boot-linaro-stable-2011.10/drivers/mtd/nand/nand.c	2011-10-24 14:31:53.000000000 +0800
++++ my-u-boot-2011.06-for-tiny210/drivers/mtd/nand/nand.c	2012-03-19 12:24:10.000000000 +0800
+@@ -64,9 +64,12 @@
+ 			 * Add MTD device so that we can reference it later
+ 			 * via the mtdcore infrastructure (e.g. ubi).
+ 			 */
+-			sprintf(dev_name[i], "nand%d", i);
++#if CONFIG_NAND_NO_USE_CHIP_NAME
++   			sprintf(dev_name[i], "nand%d", i);
+ 			mtd->name = dev_name[i++];
++#endif
+ 			add_mtd_device(mtd);
++
+ #endif
+ 		} else
+ 			mtd->name = NULL;

@@ -1,0 +1,39 @@
+--- u-boot-linaro-stable-2011.10/arch/arm/lib/bootm.c	2011-10-24 14:31:53.000000000 +0800
++++ my-u-boot-2011.06-for-tiny210/arch/arm/lib/bootm.c	2012-03-22 16:03:02.000000000 +0800
+@@ -72,7 +72,7 @@
+ 	 * pointer.
+ 	 */
+ 	sp = get_sp();
+-	debug("## Current stack ends at 0x%08lx ", sp);
++	printf("## Current stack ends at 0x%08lx \n", sp);
+ 
+ 	/* adjust sp by 1K to be safe */
+ 	sp -= 1024;
+@@ -102,6 +102,7 @@
+ 
+ #ifdef CONFIG_CMDLINE_TAG
+ 	char *commandline = getenv ("bootargs");
++	printf("### Commandline:%s \n",commandline);
+ #endif
+ 
+ 	if ((flag != 0) && (flag != BOOTM_STATE_OS_GO))
+@@ -122,7 +123,7 @@
+ 
+ 	kernel_entry = (void (*)(int, int, uint))images->ep;
+ 
+-	debug ("## Transferring control to Linux (at address %08lx) ...\n",
++	printf ("### Transferring control to Linux (at address %08lx) ...\n",
+ 	       (ulong) kernel_entry);
+ 
+ #if defined (CONFIG_SETUP_MEMORY_TAGS) || \
+@@ -151,7 +152,9 @@
+ #endif
+ 
+ 	announce_and_cleanup();
+-
++	printf("\n\n### gd->bd->bi_arch_number:%d\n### bd->bi_boot_params:0x%x\n", machid, bd->bi_boot_params);
++	printf("### gd->ram_size:0x%x\n### gd->bd->bi_dram[0].start:0x%x\n### gd->bd->bi_dram[0].size:0x%x\n### gd->bd->bi_dram[1].start:0x%x\n### gd->bd->bi_dram[1].size:0x%x\n",gd->ram_size, gd->bd->bi_dram[0].start, gd->bd->bi_dram[0].size, gd->bd->bi_dram[1].start, gd->bd->bi_dram[1].size);
++	printf("### Entrying Linux Kernel ...\n\n\n");
+ 	kernel_entry(0, machid, bd->bi_boot_params);
+ 	/* does not return */
+ 

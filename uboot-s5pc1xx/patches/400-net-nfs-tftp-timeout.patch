@@ -1,0 +1,22 @@
+--- u-boot-linaro-stable-2011.10/net/nfs.c	2011-10-24 14:31:53.000000000 +0800
++++ u-boot-2011.06-for-tiny210/net/nfs.c	2012-03-23 22:34:30.000000000 +0800
+@@ -31,7 +31,7 @@
+ 
+ #define HASHES_PER_LINE 65	/* Number of "loading" hashes per line	*/
+ #define NFS_RETRY_COUNT 30
+-#define NFS_TIMEOUT 2000UL
++#define NFS_TIMEOUT 20000UL
+ 
+ static int fs_mounted = 0;
+ static unsigned long rpc_id = 0;
+--- u-boot-linaro-stable-2011.10/net/tftp.c	2011-10-24 14:31:53.000000000 +0800
++++ u-boot-2011.06-for-tiny210/net/tftp.c	2012-03-19 15:03:36.000000000 +0800
+@@ -15,7 +15,7 @@
+ /* Well known TFTP port # */
+ #define WELL_KNOWN_PORT	69
+ /* Millisecs to timeout for lost pkt */
+-#define TIMEOUT		5000UL
++#define TIMEOUT		50000UL
+ #ifndef	CONFIG_NET_RETRY_COUNT
+ /* # of timeouts before giving up */
+ # define TIMEOUT_COUNT	10
