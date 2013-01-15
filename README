@@ -15,6 +15,8 @@
 	2.仅仅适用于fs2410/other 2410
 
 ## NOTE！ 关于tekkman的mini2440/6410 uboot
+	git://repo.or.cz/u-boot-openmoko/mini2440.git
+
 	https://github.com/tekkamanninja/u-boot-tekkamanninja
 	  下的v2010.03_mini2440_tekkamanninja分支branch和
 	  https://github.com/tekkamanninja/u-boot-2010.03-tekkaman完全一样
