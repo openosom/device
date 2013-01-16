@@ -25,7 +25,7 @@ define Package/$(PKG_NAME)
   CATEGORY:=Device
   SUBMENU:=
   SECTION:=boot
-  DEPENDS:=@TARGET_s3c24xx
+  DEPENDS:=@TARGET_s3c24xx @BROKEN
   URL:=http://www.denx.de/wiki/U-Boot
   MAINTAINER:=Richard Nee <richard.nee.cn@gmail.com>
 endef
