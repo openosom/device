@@ -110,7 +110,6 @@ uboot $uboot_image 10 "
 q
 nand write $kernel_addr $uboot_prt_addr $uboot_size
 setenv machid 1008
-setenv bootcmd bootm
 saveenv
 print"
 
@@ -125,7 +124,10 @@ nand write $kernel_addr $kernel_prt_addr $kernel_size"
 uboot $rootfs_image 20 "
 
 q
-nand write $kernel_addr $rootfs_prt_addr $rootfs_size"
+nand write $kernel_addr $rootfs_prt_addr $rootfs_size
+setenv machid
+setenv bootcmd bootm
+saveenv"
 
 echo
 echo "    "
