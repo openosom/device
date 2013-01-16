@@ -70,10 +70,15 @@ ifeq ($(CONFIG_S3C2440_SOC_TYPE),y)
   DEF_SOC_TYPE:=SOC_IS_S3C2440
 endif
 
+DEF_QEMU:=NO_QEMU
+ifeq ($(CONFIG_PACKAGE_qemu-s3c24xx),y)
+  DEF_QEMU:=QEMU_S3C24XX
+endif
+
 define Build/Compile
 	echo "#TARGETID: $(TARGETID)"
 	echo "#SOC_TYPE: $(DEF_SOC_TYPE)"
-	$(SED) '/#define CONFIG_ARM920T/ i\#define $(DEF_SOC_TYPE)' $(PKG_BUILD_DIR)/include/configs/smdk2440.h
+	$(SED) '/#define CONFIG_ARM920T/ i\#define $(DEF_SOC_TYPE)\n#define CONFIG_$(DEF_QEMU)\n' $(PKG_BUILD_DIR)/include/configs/smdk2440.h
 
 	$(MAKE) -C $(PKG_BUILD_DIR) smdk2440_config
 	$(MAKE) -C $(PKG_BUILD_DIR) CROSS_COMPILE=$(TARGET_CROSS)

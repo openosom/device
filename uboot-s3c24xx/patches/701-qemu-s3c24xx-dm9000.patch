@@ -1,0 +1,12 @@
+--- a/net/eth.c	2010-04-01 05:54:39.000000000 +0800
++++ b/net/eth.c	2013-01-16 10:38:22.414760744 +0800
+@@ -200,6 +200,9 @@
+ 	if (board_eth_init(bis) < 0)
+ 		cpu_eth_init(bis);
+ 
++#if defined(CONFIG_QEMU_S3C24XX) && defined(CONFIG_DRIVER_DM9000) && defined(CONFIG_SMDK2440)
++	dm9000_initialize(bis);
++#endif
+ #if defined(CONFIG_DB64360) || defined(CONFIG_CPCI750)
+ 	mv6436x_eth_initialize(bis);
+ #endif
