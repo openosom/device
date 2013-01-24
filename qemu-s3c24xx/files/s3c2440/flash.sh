@@ -121,7 +121,7 @@ q
 nand write $kernel_addr $kernel_prt_addr $kernel_size"
 
 # Program the root filesystem.
-uboot $rootfs_image 20 "
+uboot $rootfs_image 100 "
 
 q
 nand write $kernel_addr $rootfs_prt_addr $rootfs_size
