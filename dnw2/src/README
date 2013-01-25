@@ -1,0 +1,17 @@
+Build:
+    You need libusb installed to build this tool. 
+Please install libusb and libusb-dev before building.
+    To build this tool, just:
+	
+    gcc dnw2.c -o dnw2 -lusb
+
+Use:
+    Make sure you have root privilege. Use following 
+command to download a file:
+
+	./dnw2 <filename>
+
+BUG?
+    Please feel free to report it to hulifox008@163.com.
+
+                               Fox <hulifox008@163.com>
