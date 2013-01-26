@@ -29,7 +29,7 @@ define Package/$(PKG_NAME)
   CATEGORY:=Device
   SUBMENU:=
   SECTION:=boot
-  DEPENDS:=@TARGET_s5pv210
+  DEPENDS:=@TARGET_s5pc1xx
   URL:=http://www.linaro.org/downloads/1110/
   MAINTAINER:=Richard Nee <openme@openwrt.org.cn>
 endef
