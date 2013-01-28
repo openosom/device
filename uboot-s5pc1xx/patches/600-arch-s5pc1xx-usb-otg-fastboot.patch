@@ -1,0 +1,51 @@
+--- u-boot-linaro-stable-2011.10/arch/arm/cpu/armv7/s5pc1xx/Makefile	2013-01-14 22:47:39.230666564 +0800
++++ tiny210-uboot/arch/arm/cpu/armv7/s5pc1xx/Makefile	2013-01-14 14:00:53.514559032 +0800
+@@ -37,6 +37,14 @@
+ COBJS  += nand_cp.o
+ endif
+ 
++ifdef CONFIG_S3C_USBD
++COBJS 	+= usbd-otg-hs.o
++endif
++
++ifdef CONFIG_FASTBOOT
++COBJS 	+= fastboot.o
++endif
++
+ SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
+ OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
+ 
+--- u-boot-linaro-stable-2011.10/common/Makefile	2011-10-24 14:31:53.000000000 +0800
++++ tiny210-uboot/common/Makefile	2013-01-14 14:00:53.902559032 +0800
+@@ -175,6 +175,8 @@
+ COBJS-$(CONFIG_MODEM_SUPPORT) += modem.o
+ COBJS-$(CONFIG_UPDATE_TFTP) += update.o
+ COBJS-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
++COBJS-$(CONFIG_S3C_USBD) += cmd_usbd.o
++COBJS-$(CONFIG_FASTBOOT) += cmd_fastboot.o
+ endif
+ 
+ COBJS-y += console.o
+--- u-boot-linaro-stable-2011.10/common/main.c	2011-10-24 14:31:53.000000000 +0800
++++ tiny210-uboot/common/main.c	2013-01-14 14:00:53.922559032 +0800
+@@ -42,6 +42,8 @@
+ #include <post.h>
+ #include <linux/ctype.h>
+ 
++#include <fastboot.h>
++
+ #if defined(CONFIG_SILENT_CONSOLE) || defined(CONFIG_POST) || defined(CONFIG_CMDLINE_EDITING)
+ DECLARE_GLOBAL_DATA_PTR;
+ #endif
+@@ -348,6 +350,11 @@
+ 	hush_init_var ();
+ #endif
+ 
++#ifdef CONFIG_FASTBOOT
++	if (fastboot_preboot())
++		run_command("fastboot", 0);
++#endif
++
+ #ifdef CONFIG_PREBOOT
+ 	if ((p = getenv ("preboot")) != NULL) {
+ # ifdef CONFIG_AUTOBOOT_KEYED
