@@ -1,3 +1,12 @@
+# files/arch/arm/cpu/armv7/s5pc1xx/usbd-otg-hs.c
+# by WEI.
+#
+# 修改s3c_usb_set_descriptors中idVendorL和idVendorH为0xE8和0x04
+# 这个和DNW2中的.idVendor .idProduct相对应！
+#
+# S5P_OTG_PHYPWR:a0
+# S5P_OTG_PHYCLK:0	udelay:10us
+#
 --- u-boot-linaro-stable-2011.10/arch/arm/cpu/armv7/s5pc1xx/Makefile	2013-01-14 22:47:39.230666564 +0800
 +++ tiny210-uboot/arch/arm/cpu/armv7/s5pc1xx/Makefile	2013-01-14 14:00:53.514559032 +0800
 @@ -37,6 +37,14 @@
