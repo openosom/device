@@ -30,7 +30,7 @@
 #define __CONFIG_H
 
 /* High Level Configuration Options */
-#define CONFIG_SAMSUNG		1	/* SAMSUNG core*/
+#define CONFIG_SAMSUNG		1	/* SAMSUNG Core */
 #define CONFIG_S5P		1	/* S5P Family */
 #define CONFIG_S5PC110		1	/* which is in a S5PC110 SoC */
 #define CONFIG_TINY210		1
@@ -45,9 +45,9 @@
 #define CONFIG_EVT1		1		/* EVT1 */
 
 #if 0
-//#define CONFIG_FASTBOOT	1
-//#define CONFIG_FUSED		1		/* Fused chip */
-//#define CONFIG_SECURE		1		/* secure booting */
+#define CONFIG_FASTBOOT	1
+#define CONFIG_FUSED		1		/* Fused chip */
+#define CONFIG_SECURE		1		/* secure booting */
 #endif
 
 #define BOOT_ONENAND		0x1
@@ -58,13 +58,8 @@
 
 #define CONFIG_ZIMAGE_BOOT
 #define CONFIG_IMAGE_BOOT
-/* #define CONFIG_BOOTM_LINUX */ /* no need ? */
 
-/* MACH_TYPE_MINI210 macro will be removed once added to mach-types */
-/*2456 is SMDKV210's mach-types, 3466 is MINI210's mach-types.
-* CONFIG_MACH_TYPE must be fit for the mach-type in linux kernel you built
-* here tiny210 is using mini210 mach-types, in linux-2.6.35.7
-*/
+/* 2456 is SMDKV210's mach-types, 3466 is MINI210's mach-types. */
 #define MACH_TYPE_TINY210		3466
 #define CONFIG_MACH_TYPE		MACH_TYPE_TINY210
 
@@ -75,13 +70,11 @@
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MMC
+/* #define CONFIG_CMD_DATE */ /* compiled error */
+
 #define CONFIG_CMD_FAT
-#undef CONFIG_CMD_IMLS
-#if 0
-#undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
-#define CONFIG_CMD_DATE  /* error, if adding this CONFIG_CMD_xx */
-#endif
+#define CONFIG_CMD_EXT2				/* EXT2 Support */
+#define CONFIG_DOS_PARTITION		1       /* vfat and dos */
 
 /*------------- Miscellaneous configurable options -------------*/
 #define CONFIG_INCLUDE_TEST
@@ -96,6 +89,8 @@
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 /* valid baudrates */
 #define CONFIG_SYS_BAUDRATE_TABLE	{9600, 19200, 38400, 57600, 115200}
+/* Size of malloc() pool */
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 896*1024)
 
 /* commandline and auto complete */
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -118,20 +113,20 @@
 #define CONFIG_BOOTARGS			"root=/dev/mtdblock4 console=ttySAC0,115200 init=/linuxrc"
 
 /*------------------ NAND SD/MMC FLASH ENV and BOOT ---------------*/
-/************* 0 ENV *************/
+
+/* ENV size */
 #define CONFIG_ENV_OVERWRITE  /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_SIZE		0x4000	/* 16KB */
-/* Size of malloc() pool */
-#define CONFIG_SYS_MALLOC_LEN	(CONFIG_ENV_SIZE + 896*1024)
 
-/* default in nand */
+/* ENV default in nand */
 #if 0
-#ifndef CONFIG_TINY210_ENV_IN_NAND_NOT_MMC
-#define CONFIG_TINY210_ENV_IN_NAND_NOT_MMC
+#ifndef CONFIG_ENV_IN_NAND_NOT_MMC
+#define CONFIG_ENV_IN_NAND_NOT_MMC
 #endif
 #endif
 
-#if defined(CONFIG_TINY210_ENV_IN_NAND_NOT_MMC)	/* tiny210 ENV in NAND. default */
+/* ENV in NAND. default */
+#if defined(CONFIG_ENV_IN_NAND_NOT_MMC)
 #define CONFIG_ENV_IS_IN_NAND	1
 #define CONFIG_ENV_OFFSET	((1024<<20) - 0x40000) /*for 1GB NAND. ENV in the last 1MB-256K*/
 
@@ -142,36 +137,24 @@
 #define BL1_SIZE		(8 << 10) /*8 K reserved for BL1*/
 #define CONFIG_ENV_OFFSET	((1<<20) - (CONFIG_ENV_SIZE*2)) /* ENV offset: 1M-32K */
 /* #define CONFIG_ENV_OFFSET	(RESERVE_BLOCK_SIZE + BL1_SIZE + ((16 + 512) * 1024)) */
-#endif /* CONFIG_TINY210_ENV_IN_NAND_NOT_MMC */
 
-/************* 0 BOOT *************/
-/* default boot from nand */
-#if 0
-#ifndef CONFIG_TINY210_BOOT_FROM_NAND_NOT_MMC
-#define CONFIG_TINY210_BOOT_FROM_NAND_NOT_MMC
-#endif
+#endif /* CONFIG_ENV_IN_NAND_NOT_MMC */
 
 
-#if defined(CONFIG_TINY210_BOOT_FROM_NAND_NOT_MMC) /* boot from nand */
-#define CONFIG_TINY210_NAND_BOOT
 
-#else /* boot from sd/mmc */
-/* when booting from SD/MMC to write the uboot.bin in NAND,
- * we need the 8bit HW ECC
-*/
-#define CONFIG_TINY210_MMC_BOOT
-#define CFG_NAND_HWECC
-#define CONFIG_NAND_BL1_8BIT_ECC
-
-#endif /* CONFIG_TINY210_BOOT_FROM_NAND_NOT_MMC */
-#endif /* if 0 */
 /************* 1 FLASH *************/
 #define CONFIG_SYS_NO_FLASH		1
 
-/************* 2 SD/MMC *************/
-#define CONFIG_SPL				/* MMC SPL */
-#define CONFIG_DOS_PARTITION		1	/* vfat and dos */
-/* SD/MMC configuration */
+#ifndef CONFIG_SYS_NO_FLASH
+#define CONFIG_CMD_FLASH		/* flinfo, erase, protect */
+#define CONFIG_CMD_IMLS			/* List all found images */
+#else
+#undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_IMLS
+#endif
+
+/************* 2 SD/MMC Configuration *************/
+#define CONFIG_SPL			/* MMC SPL */
 #define CONFIG_GENERIC_MMC		1
 #define CONFIG_MMC			1
 #define CONFIG_S5P_MMC			1
@@ -193,7 +176,7 @@
 #define NAND_ENABLE_CE()		(NFCONT_REG &= ~(1 << 1))
 #define NF_TRANSRnB()			do { while(!(NFSTAT_REG & (1 << 0))); } while(0)
 
-/* Hardware ECC.for auto boot from NAND or SD/MMC */
+/* TODO: NOW, NAND and SD/MMC all support Hardware ECC for auto booting */
 #define CFG_NAND_HWECC
 #define CONFIG_NAND_BL1_8BIT_ECC
 #define CONFIG_8BIT_HW_ECC_SLC      1
@@ -202,8 +185,6 @@
 #define CONFIG_MTD_DEBUG
 #define CONFIG_MTD_DEBUG_VERBOSE
 #define CFG_NAND_SKIP_BAD_DOT_I 1
-#define CFG_NAND_HWECC
-#define CONFIG_NAND_BL1_8BIT_ECC
 #endif
 
 #undef  CFG_NAND_FLASH_BBT
@@ -217,9 +198,9 @@
 #define CONFIG_SYS_MEMTEST_START	MEMORY_BASE_ADDRESS
 #define CONFIG_SYS_MEMTEST_END		(MEMORY_BASE_ADDRESS + 0x3E00000)  /* 256 MB in DRAM */
 
-/* MINI210 has 4 bank of DRAM */
+/* ONLY 1 Bank of DDRAM USED */
 #define CONFIG_NR_DRAM_BANKS	1
-#define SDRAM_BANK_SIZE		0x20000000	/* 512 MB for tiny210 */
+#define SDRAM_BANK_SIZE		0x20000000	/* 512 MB */
 #define PHYS_SDRAM_1		MEMORY_BASE_ADDRESS
 #define PHYS_SDRAM_1_SIZE	SDRAM_BANK_SIZE
 #if 0
@@ -275,9 +256,10 @@
 #define CONFIG_SYS_HZ			1000		// at PCLK 66MHz
 
 
-/*----------------------- DM9000 -------------------------*/
+/* DM9000 Ethernet */
 #define DM9000_16BIT_DATA
 #define CONFIG_CMD_NET
+#define CONFIG_CMD_NFS
 #define CONFIG_DRIVER_DM9000		1
 #define CONFIG_NET_MULTI		1
 #define CONFIG_NET_RETRY_COUNT		1
