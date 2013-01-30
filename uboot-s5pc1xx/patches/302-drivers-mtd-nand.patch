@@ -16,9 +16,8 @@ diff -Nur u-boot-linaro-stable-2011.10/drivers/mtd/nand/nand.c my-u-boot-2011.06
  			 * Add MTD device so that we can reference it later
  			 * via the mtdcore infrastructure (e.g. ubi).
  			 */
--			sprintf(dev_name[i], "nand%d", i);
-+#if CONFIG_NAND_NO_USE_CHIP_NAME
-+   			sprintf(dev_name[i], "nand%d", i);
++#ifndef CONFIG_NAND_NO_USE_CHIP_NAME
+ 			sprintf(dev_name[i], "nand%d", i);
  			mtd->name = dev_name[i++];
 +#endif
  			add_mtd_device(mtd);
@@ -26,3 +25,15 @@ diff -Nur u-boot-linaro-stable-2011.10/drivers/mtd/nand/nand.c my-u-boot-2011.06
  #endif
  		} else
  			mtd->name = NULL;
+--- a/common/env_common.c	2011-10-24 14:31:53.000000000 +0800
++++ b/common/env_common.c	2013-01-30 08:55:05.850766215 +0800
+@@ -123,6 +123,9 @@
+ #if defined(CONFIG_PCI_BOOTDELAY) && (CONFIG_PCI_BOOTDELAY > 0)
+ 	"pcidelay="	MK_STR(CONFIG_PCI_BOOTDELAY)	"\0"
+ #endif
++#ifdef  MTDPARTS_DEFAULT
++	"mtdparts="	MTDPARTS_DEFAULT		"\0"
++#endif
+ #ifdef  CONFIG_EXTRA_ENV_SETTINGS
+ 	CONFIG_EXTRA_ENV_SETTINGS
+ #endif
