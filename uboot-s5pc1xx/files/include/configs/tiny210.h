@@ -72,9 +72,55 @@
 #define CONFIG_CMD_MMC
 /* #define CONFIG_CMD_DATE */ /* compiled error */
 
-#define CONFIG_CMD_FAT
+/*
+ * File system
+ */
+#define CONFIG_DOS_PARTITION		1	/* vfat and dos */
+#define CONFIG_CMD_FAT				/* FAT Support */
 #define CONFIG_CMD_EXT2				/* EXT2 Support */
-#define CONFIG_DOS_PARTITION		1       /* vfat and dos */
+
+/* YAFFS2 Support*/
+#if 1
+#define CONFIG_YAFFS2
+#define CONFIG_YAFFS_YAFFS1	/* 512b page in 'YAFFS1 compatibility' mode */
+#define CONFIG_YAFFS_YAFFS2	/* 2K or larger page NAND in YAFFS2 mode */
+#endif
+
+/* JFFS2 Support*/
+#if 1
+#define CONFIG_CMD_JFFS2
+/* Configuration of JFFS2 Partitions */
+#define CONFIG_JFFS2_NAND 1
+#define CONFIG_JFFS2_DEV        "nand0"
+#define CONFIG_JFFS2_PART_SIZE  0x480000
+#define CONFIG_JFFS2_PART_OFFSET        0x80000
+#define CONFIG_JFFS2_CMDLINE 1
+#endif
+
+/* UbiFS Support*/
+#if 1
+#define CONFIG_CMD_UBIFS           
+#define CONFIG_CMD_UBI    
+#define CONFIG_LZO 
+#define CONFIG_RBTREE 
+#endif
+
+/* Dynamic MTD partition support */
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE  /* needed for mtd parts commands */
+#define CONFIG_MTD_PARTITIONS
+
+/* MTD default configuration */
+#define MTDIDS_DEFAULT		"nand0=s5p-nand"
+#define MTDPARTS_DEFAULT	"mtdparts=s5p-nand:" \
+"768k(bootloader,uboot)," \
+"5m@0x100000(recovery)," \
+"5m@0x600000(kernel)," \
+"3m@0xB00000(ramdisk)," \
+"128m@0xE00000(system)," \
+"64m@0x8E00000(cache)," \
+"-(userdata)"
+
 
 /*------------- Miscellaneous configurable options -------------*/
 #define CONFIG_INCLUDE_TEST
@@ -164,9 +210,7 @@
 #if defined(CONFIG_CMD_NAND)
 #define CONFIG_CMD_NAND_YAFFS
 #define CONFIG_CMD_NAND_YAFFS_SKIPFB
-#define CONFIG_CMD_MTDPARTS
 
-#define CONFIG_MTD_DEVICE  /* needed for mtd parts commands */
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
 #define CONFIG_SYS_NAND_BASE			(0xB0E000000)
 #define CONFIG_NAND_USE_CHIP_NAME		1
@@ -180,12 +224,6 @@
 #define CFG_NAND_HWECC
 #define CONFIG_NAND_BL1_8BIT_ECC
 #define CONFIG_8BIT_HW_ECC_SLC      1
-
-#if 0
-#define CONFIG_MTD_DEBUG
-#define CONFIG_MTD_DEBUG_VERBOSE
-#define CFG_NAND_SKIP_BAD_DOT_I 1
-#endif
 
 #undef  CFG_NAND_FLASH_BBT
 #endif
@@ -215,8 +253,16 @@
 #define CONFIG_SYS_LOAD_ADDR	(PHYS_SDRAM_1 + 0x8000)
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR - GENERATED_GBL_DATA_SIZE)
 
+
 /* Stack sizes */
 #define CONFIG_STACKSIZE	0x40000  /* regular stack 256KB */
+
+/* #define CONFIG_USB_DEVICE	1 */
+#ifdef CONFIG_USB_DEVICE
+#define CONFIG_USE_IRQ		1
+#else
+#undef CONFIG_USE_IRQ		/* we don't need IRQ/FIQ stuff */
+#endif
 
 #ifdef CONFIG_USE_IRQ
 #define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
@@ -234,8 +280,6 @@
 #endif
 
 #define CONFIG_MEMORY_UPPER_CODE
-
-#undef CONFIG_USE_IRQ    /* we don't need IRQ/FIQ stuff */
 
 #define BOARD_LATE_INIT
 
@@ -274,6 +318,20 @@
 #define DM9000_DATA			(CONFIG_DM9000_BASE+1)
 #endif /* DM9000_16BIT_DATA */
 #endif /* CONFIG_DRIVER_DM9000 */
+
+/* USB Support */
+#if 0
+#ifdef CONFIG_USB_DEVICE
+#define CONFIG_CMD_USB
+#define CONFIG_USB_OHCI
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_KEYBOARD 1
+#define CONFIG_DOS_PARTITION
+#define CONFIG_SYS_DEVICE_DEREGISTER
+#define CONFIG_SUPPORT_VFAT
+#define LITTLEENDIAN
+#endif
+#endif
 
 
 /*----------------------------- system clock ----------------------------*/
