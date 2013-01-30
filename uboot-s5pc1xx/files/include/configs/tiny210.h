@@ -44,10 +44,29 @@
 #define CONFIG_MCP_SINGLE	1
 #define CONFIG_EVT1		1		/* EVT1 */
 
+/*
+ * FASTBOOT
+ */
 #if 0
-#define CONFIG_FASTBOOT	1
+#define CONFIG_FASTBOOT		1
 #define CONFIG_FUSED		1		/* Fused chip */
 #define CONFIG_SECURE		1		/* secure booting */
+#endif
+#define CONFIG_FASTBOOT		1
+
+#ifdef CONFIG_FASTBOOT
+/* Fastboot variables */
+#define CFG_FASTBOOT_ADDR_KERNEL		(0x20008000)
+#define CFG_FASTBOOT_ADDR_RAMDISK		(0x20A00000)
+#define CFG_FASTBOOT_TRANSFER_BUFFER		(0x30000000)
+#define CFG_FASTBOOT_TRANSFER_BUFFER_SIZE	(0x8000000) /* 128MB */
+#define CFG_FASTBOOT_PAGESIZE			(2048) /* Page size */
+#define CFG_FASTBOOT_SDMMC_BLOCKSIZE		(512) /* Block size of sdmmc */
+
+/* Just one BSP type should be defined. */
+#define CFG_FASTBOOT_NANDBSP
+/* #define CFG_FASTBOOT_ONENANDBSP */
+/* #define CFG_FASTBOOT_SDMMCBSP */
 #endif
 
 #define BOOT_ONENAND		0x1
@@ -319,6 +338,10 @@
 #endif /* DM9000_16BIT_DATA */
 #endif /* CONFIG_DRIVER_DM9000 */
 
+/* USB OTG DNW */
+#define CONFIG_S3C_USBD
+#define USBD_DOWN_ADDR			(CONFIG_SYS_LOAD_ADDR) /* other: 0x30000000 */
+
 /* USB Support */
 #if 0
 #ifdef CONFIG_USB_DEVICE
@@ -331,6 +354,13 @@
 #define CONFIG_SUPPORT_VFAT
 #define LITTLEENDIAN
 #endif
+#endif
+
+/* LCD Support*/
+#if 0
+#define CONFIG_VIDEO
+#define CONFIG_CFB_CONSOLE
+#define CONFIG_VIDEO_LOGO 1
 #endif
 
 
