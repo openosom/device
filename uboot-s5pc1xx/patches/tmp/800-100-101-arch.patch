@@ -1,0 +1,119 @@
+--- 100-tiny210-uboot/arch/arm/cpu/armv7/s5pc1xx/fastboot.c	2013-01-14 14:00:53.514559032 +0800
++++ 101-tiny210-uboot/arch/arm/cpu/armv7/s5pc1xx/fastboot.c	2013-01-14 13:59:45.030559000 +0800
+@@ -32,7 +32,7 @@
+ 	{
+ 		.name     = "bootloader",
+ 		.start    = 0x0,
+-		.length   = 0x100000,
++		.length   = 0x100000 - 0x40000,
+ 		.flags    = 0
+ 	},
+ 	{
+@@ -56,18 +56,18 @@
+ 	{
+ 		.name     = "system",
+ 		.start    = 0xE00000,
+-		.length   = 0x7800000,//0x6E00000,
++		.length   = 0x8000000,
+ 		.flags    = FASTBOOT_PTENTRY_FLAGS_WRITE_YAFFS
+ 	},
+ 	{
+ 		.name     = "cache",
+-		.start    = 0x7C00000,
+-		.length   = 0x2000000,
++		.start    = 0x8E00000,
++		.length   = 0x4000000,
+ 		.flags    = FASTBOOT_PTENTRY_FLAGS_WRITE_YAFFS
+ 	},
+ 	{
+ 		.name     = "userdata",
+-		.start    = 0x9C00000,
++		.start    = 0xCE00000,
+ 		.length   = 0,
+ 		.flags    = FASTBOOT_PTENTRY_FLAGS_WRITE_YAFFS
+ 	}
+@@ -86,7 +86,7 @@
+ #define A_SESSION_VALID		(0x1<<18)
+ 
+ 
+-#define VENDOR_ID 	0x18D1 
++#define VENDOR_ID	0x18D1
+ #define PRODUCT_ID	0x0002
+ #define FB_PKT_SZ	64 // full-speed mode
+ #define OK	0
+@@ -170,7 +170,7 @@
+    Set to maximum of 512 */
+ 
+ /* Note: The start address must be double word aligned */
+-static u8 fastboot_bulk_fifo[0x0200+1]; //__attribute__ ((aligned(0x4))); 
++static u8 fastboot_bulk_fifo[0x0200+1]; //__attribute__ ((aligned(0x4)));
+ const char* reply_msg;
+ unsigned int transfer_size;
+ u32 fboot_response_flag=0;
+@@ -224,14 +224,14 @@
+ 	EP0_STATE_GET_STATUS3		= 38,
+ 	EP0_STATE_GET_STATUS4		= 39,
+ 	EP0_STATE_GD_OTHER_SPEED	= 40,
+-	EP0_STATE_GD_CFG_ONLY_0 	= 41,
+-	EP0_STATE_GD_CFG_ONLY_1 	= 42,
++	EP0_STATE_GD_CFG_ONLY_0		= 41,
++	EP0_STATE_GD_CFG_ONLY_1		= 42,
+ 	EP0_STATE_GD_IF_ONLY_0		= 44,
+ 	EP0_STATE_GD_IF_ONLY_1		= 45,
+-	EP0_STATE_GD_EP0_ONLY_0 	= 46,
+-	EP0_STATE_GD_EP1_ONLY_0 	= 47,
+-	EP0_STATE_GD_EP2_ONLY_0 	= 48,
+-	EP0_STATE_GD_EP3_ONLY_0 	= 49,
++	EP0_STATE_GD_EP0_ONLY_0		= 46,
++	EP0_STATE_GD_EP1_ONLY_0		= 47,
++	EP0_STATE_GD_EP2_ONLY_0		= 48,
++	EP0_STATE_GD_EP3_ONLY_0		= 49,
+ 	EP0_STATE_GD_OTHER_SPEED_HIGH_1	= 51,
+ 	EP0_STATE_GD_OTHER_SPEED_HIGH_2	= 52,
+ 	EP0_STATE_GD_OTHER_SPEED_HIGH_3	= 53
+@@ -1696,7 +1696,7 @@
+ 		/*ep3 enable, clear nak, bulk, usb active, next ep3, max pkt 64*/
+ 		writel(1u<<31|1<<26|2<<18|1<<15|fboot_otg.bulkin_max_pktsize<<0, S5P_OTG_DIEPCTL_IN);
+ 
+-		fboot_usb_write_in_fifo(reply_msg,strlen(reply_msg)); 
++		fboot_usb_write_in_fifo(reply_msg,strlen(reply_msg));
+ 
+ 		fboot_response_flag=0;
+ 	}
+@@ -1741,7 +1741,7 @@
+ 	} else { /*remain_cnt = 0*/
+ 		writel((DEPCTL_SNAK|DEPCTL_BULK_TYPE), S5P_OTG_DIEPCTL_IN);
+ 	}
+-	
++
+ #endif
+ }
+ 
+@@ -1897,8 +1897,8 @@
+ 		if (((u32)fboot_otg.dn_ptr - fboot_otg.dn_addr) >= (fboot_otg.dn_filesize - 8)) {
+ 			printf("Download Done!! Download Address: 0x%x, Download Filesize:0x%x\n",
+ 				fboot_otg.dn_addr, (fboot_otg.dn_filesize-10));
+-				
+-			fboot_usbd_dn_cnt 	= fboot_otg.dn_filesize-10;
++
++			fboot_usbd_dn_cnt	= fboot_otg.dn_filesize-10;
+ 			fboot_usbd_dn_addr	= fboot_otg.dn_addr;
+ 
+ #ifdef USB_CHECKSUM_EN
+@@ -1945,14 +1945,14 @@
+ 	if (fastboot_interface && fastboot_interface->rx_handler) {
+ 		/* Call rx_handler at common/cmd_fastboot.c */
+ 		if (!fastboot_interface->rx_handler(&fastboot_bulk_fifo[0], fifo_cnt_byte))
+-			;//OK 
++			;//OK
+ 	}
+ 
+ 	/* Since the buffer is not null terminated,
+ 	 * poison the buffer */
+ 	//memset(&fastboot_bulk_fifo[0], 0, fifo_size);
+ 	//memset(&fastboot_bulk_fifo[0], 0, fastboot_fifo_size);
+-		
++
+ 	/*ep1 enable, clear nak, bulk, usb active, max pkt 64*/
+ 	//writel(1u<<31|1<<26|2<<18|1<<15|fboot_otg.bulkin_max_pktsize<<0, S5P_OTG_DIEPCTL_IN);
+ #else
