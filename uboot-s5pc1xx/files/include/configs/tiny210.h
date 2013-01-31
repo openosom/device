@@ -111,8 +111,8 @@
 /* Configuration of JFFS2 Partitions */
 #define CONFIG_JFFS2_NAND 1
 #define CONFIG_JFFS2_DEV        "nand0"
-#define CONFIG_JFFS2_PART_SIZE  0x480000
-#define CONFIG_JFFS2_PART_OFFSET        0x80000
+#define CONFIG_JFFS2_PART_SIZE		0x8000000 /* same as (system) */
+#define CONFIG_JFFS2_PART_OFFSET	0xE00000
 #define CONFIG_JFFS2_CMDLINE 1
 #endif
 
@@ -132,7 +132,7 @@
 /* MTD default configuration */
 #define MTDIDS_DEFAULT		"nand0=s5p-nand"
 #define MTDPARTS_DEFAULT	"mtdparts=s5p-nand:" \
-"768k(bootloader,uboot)," \
+"768k(bootloader)," \
 "5m@0x100000(recovery)," \
 "5m@0x600000(kernel)," \
 "3m@0xB00000(ramdisk)," \
@@ -181,10 +181,10 @@
 
 /* ENV size */
 #define CONFIG_ENV_OVERWRITE  /* allow to overwrite serial and ethaddr */
-#define CONFIG_ENV_SIZE		0x4000	/* 16KB */
+#define CONFIG_ENV_SIZE		0x20000	/* 128KB */
 
 /* ENV default in nand */
-#if 0
+#if 1
 #ifndef CONFIG_ENV_IN_NAND_NOT_MMC
 #define CONFIG_ENV_IN_NAND_NOT_MMC
 #endif
@@ -193,14 +193,14 @@
 /* ENV in NAND. default */
 #if defined(CONFIG_ENV_IN_NAND_NOT_MMC)
 #define CONFIG_ENV_IS_IN_NAND	1
-#define CONFIG_ENV_OFFSET	((1024<<20) - 0x40000) /*for 1GB NAND. ENV in the last 1MB-256K*/
+#define CONFIG_ENV_OFFSET	((1<<20) - (CONFIG_ENV_SIZE)) /*for NAND. ENV in 1MB-128K*/
 
 #else /* ENV in SD/MMC */
 #define CONFIG_ENV_IS_IN_MMC	1
 #define CONFIG_SYS_MMC_ENV_DEV	0
 #define RESERVE_BLOCK_SIZE	(512)
 #define BL1_SIZE		(8 << 10) /*8 K reserved for BL1*/
-#define CONFIG_ENV_OFFSET	((1<<20) - (CONFIG_ENV_SIZE*2)) /* ENV offset: 1M-32K */
+#define CONFIG_ENV_OFFSET	((1<<20) - (CONFIG_ENV_SIZE)) /* ENV offset: 1M-128K */
 /* #define CONFIG_ENV_OFFSET	(RESERVE_BLOCK_SIZE + BL1_SIZE + ((16 + 512) * 1024)) */
 
 #endif /* CONFIG_ENV_IN_NAND_NOT_MMC */
@@ -498,7 +498,7 @@
 #if defined(CONFIG_MCP_SINGLE)
 
 #define DMC0_MEMCONTROL		0x00202400	// MemControl	BL=4, 1Chip, DDR2 Type, dynamic self refresh, force precharge, dynamic power down off
-#define DMC0_MEMCONFIG_0	0x20E00323	// MemConfig0	256MB config, 8 banks,Mapping Method[12:15]0:linear, 1:linterleaved, 2:Mixed
+#define DMC0_MEMCONFIG_0	0x20E00323	// MemConfig0	512MB config, 8 banks,Mapping Method[12:15]0:linear, 1:linterleaved, 2:Mixed
 #define DMC0_MEMCONFIG_1	0x00E00323	// MemConfig1
 #if 0
 #define DMC0_TIMINGA_REF	0x00000618	// TimingAref	7.8us*133MHz=1038(0x40E), 100MHz=780(0x30C), 20MHz=156(0x9C), 10MHz=78(0x4E)
