@@ -175,7 +175,7 @@
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 #define CONFIG_BOOTFILE			"uImage"
 #define CONFIG_BOOTCOMMAND		"tftp; bootm"
-#define CONFIG_BOOTARGS			"root=/dev/mtdblock4 console=ttySAC0,115200 init=/linuxrc"
+#define CONFIG_BOOTARGS			"root=/dev/mtdblock4 console=ttySAC0,115200"
 
 /*------------------ NAND SD/MMC FLASH ENV and BOOT ---------------*/
 
